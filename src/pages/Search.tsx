@@ -4,6 +4,7 @@ import { Search as SearchIcon, Play, Flame, Users, BookOpen, Clock, Eye } from '
 import api from '../api/index.ts';
 import { Video, User, Short, CommunityPost } from '../types.ts';
 import { formatViews, formatRelativeDate, DEFAULT_AVATAR } from '../utils.ts';
+import { setPageMeta } from '../seo.ts';
 
 interface SearchResults {
   videos: Video[];
@@ -20,6 +21,10 @@ export default function Search() {
 
   useEffect(() => {
     if (query) {
+      setPageMeta({
+        title: `Поиск: ${query}`,
+        description: `Результаты поиска «${query}» на LarpTubeX — видео, каналы, Shorts и посты.`,
+      });
       runQuerySearch();
     }
   }, [query]);

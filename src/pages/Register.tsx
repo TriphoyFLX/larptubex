@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.ts';
 import { uploadFile } from '../api/index.ts';
 import { AlertCircle, Sparkles } from 'lucide-react';
+import BrandLogo from '../components/BrandLogo.tsx';
+import { setPageMeta } from '../seo.ts';
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register } = useAuthStore();
+  const { register, user } = useAuthStore();
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
@@ -16,6 +18,20 @@ export default function Register() {
   const [errorText, setErrorText] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    setPageMeta({
+      title: 'Регистрация',
+      description: 'Создайте канал на LarpTubeX — регистрация и публикация видео.',
+      noIndex: true,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !displayName || !password) {
@@ -24,6 +40,10 @@ export default function Register() {
     }
     if (password.length < 6) {
       setErrorText('Пароль должен содержать минимум 6 символов');
+      return;
+    }
+    if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+      setErrorText('Пароль должен содержать буквы и цифры');
       return;
     }
     setSubmitting(true);
@@ -40,7 +60,7 @@ export default function Register() {
         avatar: avatarUrl,
         bio: bio.trim() || undefined,
       });
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err: any) {
       setErrorText(err.message || 'Ошибка в процессе создания канала');
     } finally {
@@ -53,9 +73,8 @@ export default function Register() {
       <div className="w-full max-w-md yt-surface border border-[var(--yt-border)] p-8 shadow-sm rounded-sm yt-card" id="register-box">
         {/* Logo and Titles */}
         <div className="text-center mb-6">
-          <div className="flex justify-center items-center gap-1 mb-2">
-            <span className="bg-yt-red text-white font-bold text-lg px-2 rounded-sm tracking-tight">LARP</span>
-            <span className="font-display font-bold text-2xl tracking-tight">Tube<span className="text-yt-red">X</span></span>
+          <div className="flex justify-center mb-3">
+            <BrandLogo variant="auth" linked={false} />
           </div>
           <p className="text-xs yt-text-secondary">Регистрация нового видеоканала</p>
         </div>
@@ -96,7 +115,7 @@ export default function Register() {
             <label className="block text-xs font-bold yt-text-secondary mb-1">Пароль канала *</label>
             <input
               type="password"
-              placeholder="Минимум 6 символов"
+              placeholder="Минимум 8 символов, буквы и цифры"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-[var(--yt-border)] rounded-[1px] text-sm yt-input"

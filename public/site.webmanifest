@@ -1,0 +1,24 @@
+{
+  "name": "LarpTubeX",
+  "short_name": "LarpTubeX",
+  "description": "Видеохостинг, Shorts и сообщество авторов",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#cc181e",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "/brand/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

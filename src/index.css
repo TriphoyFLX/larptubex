@@ -151,6 +151,21 @@ button { cursor: pointer; }
 }
 .yt-button-primary:hover { background-color: var(--yt-brand-hover); }
 
+.yt-button-primary:hover { background-color: var(--yt-brand-hover); }
+
+/* Watch page mobile sheet */
+.watch-sheet-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+.yt-player:fullscreen {
+  border-radius: 0;
+}
+
+.yt-player:fullscreen video {
+  object-fit: contain;
+}
+
 .yt-card {
   background: var(--yt-bg-elevated);
   border: 1px solid var(--yt-border);

@@ -1,21 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../db/prisma.ts';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'larptubex_secret_jwt_key_2026';
+import { getJwtSecret, sanitizeUser, type SafeUser } from '../server/security.ts';
 
 export interface AuthRequest extends Request {
-  user?: {
-    id: number;
-    uid: string | null;
-    email: string;
-    displayName: string;
-    avatar: string | null;
-    banner?: string | null;
-    handle?: string | null;
-    bio: string | null;
-    isAdmin: boolean;
-  };
+  user?: SafeUser;
 }
 
 export const requireAuth = async (
@@ -30,22 +19,13 @@ export const requireAuth = async (
 
   const token = authHeader.split('Bearer ')[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; email: string };
-    if (decoded && decoded.userId) {
+    const decoded = jwt.verify(token, getJwtSecret()) as { userId: number; email: string };
+    if (decoded?.userId) {
       const foundUser = await prisma.user.findUnique({
-        where: { id: decoded.userId }
+        where: { id: decoded.userId },
       });
       if (foundUser) {
-        // Double check roomop86@gmail.com is set as Admin
-        if (foundUser.email.toLowerCase() === 'roomop86@gmail.com' && !foundUser.isAdmin) {
-          const updatedUser = await prisma.user.update({
-            where: { id: foundUser.id },
-            data: { isAdmin: true }
-          });
-          req.user = updatedUser;
-        } else {
-          req.user = foundUser;
-        }
+        req.user = sanitizeUser(foundUser);
         return next();
       }
     }
@@ -69,11 +49,18 @@ export const optionalAuth = async (
 
   const token = authHeader.split('Bearer ')[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    const decoded = jwt.verify(token, getJwtSecret()) as { userId: number };
     const foundUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
-    if (foundUser) req.user = foundUser;
+    if (foundUser) req.user = sanitizeUser(foundUser);
   } catch {
     // ignore invalid token for optional auth
   }
   next();
+};
+
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (!req.user?.isAdmin) {
+    return res.status(403).json({ error: 'Доступ запрещен. Требуются права администратора.' });
+  }
+  return next();
 };

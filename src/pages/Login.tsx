@@ -1,15 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore.ts';
-import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { LogIn, AlertCircle } from 'lucide-react';
+import BrandLogo from '../components/BrandLogo.tsx';
+import { setPageMeta } from '../seo.ts';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { login, user } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorCode, setErrorCode] = useState('');
   const [authProgress, setAuthProgress] = useState(false);
+
+  useEffect(() => {
+    setPageMeta({
+      title: 'Вход',
+      description: 'Авторизация в LarpTubeX — войдите в свой аккаунт и канал.',
+      noIndex: true,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +37,7 @@ export default function Login() {
     setErrorCode('');
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err: any) {
       setErrorCode(err.message || 'Ошибка аутентификации');
     } finally {
@@ -34,9 +50,8 @@ export default function Login() {
       <div className="w-full max-w-sm yt-surface border border-[var(--yt-border)] p-8 shadow-sm rounded-sm yt-card" id="login-box">
         {/* Header styling */}
         <div className="text-center mb-6">
-          <div className="flex justify-center items-center gap-1 mb-2">
-            <span className="bg-yt-red text-white font-bold text-lg px-2 rounded-sm tracking-tight">LARP</span>
-            <span className="font-display font-bold text-2xl tracking-tight">Tube<span className="text-yt-red">X</span></span>
+          <div className="flex justify-center mb-3">
+            <BrandLogo variant="auth" linked={false} />
           </div>
           <p className="text-xs yt-text-secondary">Авторизация в системе видеохостинга</p>
         </div>

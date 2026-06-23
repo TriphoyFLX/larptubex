@@ -6,6 +6,7 @@ import { useThemeStore } from '../store/themeStore.ts';
 import api from '../api/index.ts';
 import { Notification } from '../types.ts';
 import { formatRelativeDate, DEFAULT_AVATAR, formatChannelHandle } from '../utils.ts';
+import BrandLogo from './BrandLogo.tsx';
 
 export default function Navbar({ onSidebarToggle }: { onSidebarToggle: () => void }) {
   const navigate = useNavigate();
@@ -73,15 +74,7 @@ export default function Navbar({ onSidebarToggle }: { onSidebarToggle: () => voi
         >
           <Menu size={20} />
         </button>
-        <Link to="/" className="flex items-center gap-1.5 focus:outline-none" id="logo-larptubex">
-          <div className="bg-yt-red text-white px-1.5 py-0.5 rounded-sm flex items-center justify-center shrink-0">
-            <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-white border-b-[5px] border-b-transparent ml-0.5" />
-          </div>
-          <span className="font-sans font-bold text-lg tracking-tighter select-none yt-text-primary">
-            LarpTube<span className="yt-text-muted font-normal">X</span>
-          </span>
-          <span className="text-[10px] yt-text-muted font-normal align-top ml-0.5">RU</span>
-        </Link>
+        <BrandLogo variant="navbar" />
       </div>
 
       <form onSubmit={handleSearchSubmit} className="flex flex-1 max-w-[640px] px-4 lg:px-8" id="search-form">
