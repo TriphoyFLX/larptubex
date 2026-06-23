@@ -14,6 +14,7 @@ import { useAuthStore } from '../store/authStore.ts';
 import api from '../api/index.ts';
 import { Video, Comment } from '../types.ts';
 import { formatViews, formatRelativeDate, buildCommentTree, DEFAULT_AVATAR, isSameUser } from '../utils.ts';
+import { registerPlaybackForAd } from '../utils/ads.ts';
 import { setPageMeta } from '../seo.ts';
 import { useWatchProgress } from '../hooks/useWatchProgress.ts';
 import VideoPlayer from '../components/VideoPlayer.tsx';
@@ -34,6 +35,7 @@ export default function Watch() {
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [savedProgress, setSavedProgress] = useState(0);
   const [theaterMode, setTheaterMode] = useState(false);
+  const [showPreroll, setShowPreroll] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -48,6 +50,7 @@ export default function Watch() {
 
   useEffect(() => {
     setTheaterMode(false);
+    setShowPreroll(registerPlaybackForAd());
     loadVideoAndDetails();
     fetchSuggestedVideos();
     window.scrollTo(0, 0);
@@ -222,6 +225,7 @@ export default function Watch() {
     onResume: handleResume,
     onStartFromBeginning: handleStartFromBeginning,
     autoPlay: !resumeOffered,
+    showPreroll,
   };
 
   const videoMeta = (

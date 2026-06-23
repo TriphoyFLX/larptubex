@@ -8,6 +8,8 @@ import { Short, Comment } from '../types.ts';
 import { DEFAULT_AVATAR } from '../utils.ts';
 import { useWatchProgress } from '../hooks/useWatchProgress.ts';
 import { setPageMeta } from '../seo.ts';
+import { registerPlaybackForAd } from '../utils/ads.ts';
+import LarpTubeXPrerollAd from '../components/LarpTubeXPrerollAd.tsx';
 
 interface ShortDetail extends Short {
   viewerRating?: 'like' | 'dislike' | null;
@@ -23,6 +25,8 @@ export default function Shorts() {
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newCommentText, setNewCommentText] = useState('');
+
+  const [showPreroll, setShowPreroll] = useState(false);
 
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const activeVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -48,13 +52,14 @@ export default function Shorts() {
   useEffect(() => {
     if (shortsList.length > 0) {
       loadActiveShortDetails();
+      setShowPreroll(registerPlaybackForAd());
     }
   }, [activeIndex, shortsList]);
 
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (vid) {
-        if (idx === activeIndex) {
+        if (idx === activeIndex && !showPreroll) {
           vid.play().catch(() => {});
         } else {
           vid.pause();
@@ -62,7 +67,7 @@ export default function Shorts() {
         }
       }
     });
-  }, [activeIndex, shortsList]);
+  }, [activeIndex, shortsList, showPreroll]);
 
   const fetchShorts = async () => {
     setLoading(true);
@@ -232,6 +237,16 @@ export default function Shorts() {
               else target.pause();
             }}
           />
+
+          {showPreroll && (
+            <LarpTubeXPrerollAd
+              variant="short"
+              onComplete={() => {
+                setShowPreroll(false);
+                activeVideoRef.current?.play().catch(() => {});
+              }}
+            />
+          )}
 
           <div className="absolute bottom-0 left-0 right-0 p-4 pt-16 bg-gradient-to-t from-black/80 to-transparent text-white z-10">
             <h3 className="font-bold text-sm uppercase-none tracking-wide">{currentShort.title}</h3>

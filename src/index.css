@@ -120,6 +120,42 @@ button { cursor: pointer; }
 .yt-chip-active { background: var(--yt-bg-chip-active); border-color: var(--yt-bg-chip-active); color: var(--yt-bg); }
 .yt-desc-box { background: var(--yt-bg-hover); border: 1px solid var(--yt-border); color: var(--yt-text); }
 
+/* YouTube-style 16:9 video thumbnails */
+.yt-video-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #000;
+}
+.yt-video-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.yt-video-thumb:hover img {
+  transform: scale(1.02);
+  opacity: 0.92;
+}
+.yt-video-duration {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
 /* Buttons */
 .yt-button {
   background-color: var(--yt-bg-hover);

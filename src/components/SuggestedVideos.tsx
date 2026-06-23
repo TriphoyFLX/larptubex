@@ -29,16 +29,14 @@ export default function SuggestedVideos({
       onClick={onVideoClick}
       className="group flex gap-3 rounded-sm hover:bg-gray-50/80 transition-colors p-1 -mx-1"
     >
-      <div className="relative shrink-0 overflow-hidden bg-black border border-gray-200 rounded-sm aspect-video w-[168px] sm:w-40">
+      <div className="relative shrink-0 yt-video-thumb w-[168px] sm:w-40 rounded-lg">
         <img
           src={s.thumbnailUrl}
           alt={s.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
         />
-        <span className="absolute bottom-1 right-1 bg-black/90 text-[9px] font-mono font-bold text-white px-1 rounded">
-          {s.duration}
-        </span>
+        <span className="yt-video-duration">{s.duration}</span>
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/25">
           <Play size={28} className="text-white fill-white drop-shadow-lg" />
         </div>

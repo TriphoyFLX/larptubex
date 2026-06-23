@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Play, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import api from '../api/index.ts';
 import { useAuthStore } from '../store/authStore.ts';
 import { Video, Category, WatchHistoryEntry } from '../types.ts';
 import { formatViews, formatRelativeDate, formatVideoDuration } from '../utils.ts';
 import { SITE, setPageMeta } from '../seo.ts';
+import VideoThumbnail from '../components/VideoThumbnail.tsx';
 
 export default function Home() {
   const { user } = useAuthStore();
@@ -100,39 +101,30 @@ export default function Home() {
           </div>
           <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
             {continueWatching.map((entry) => (
-              <Link
-                key={entry.id}
-                to={`/watch/${entry.videoId}`}
-                className="group shrink-0 w-44"
-              >
-                <div className="relative aspect-video bg-black border border-[var(--yt-border)] overflow-hidden">
-                  <img
-                    src={entry.thumbnailUrl}
+              <div key={entry.id} className="group shrink-0 w-44">
+                <div className="relative">
+                  <VideoThumbnail
+                    src={entry.thumbnailUrl || ''}
                     alt={entry.title}
-                    className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                    duration={entry.duration}
+                    to={`/watch/${entry.videoId}`}
                   />
-                  {entry.duration && (
-                    <span className="absolute bottom-1 right-1 bg-black/80 text-white font-mono text-[10px] font-bold px-1">
-                      {entry.duration}
-                    </span>
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800/50">
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800/50 rounded-b-xl overflow-hidden pointer-events-none">
                     <div
                       className="h-full bg-yt-red"
                       style={{ width: `${entry.progressPercent}%` }}
                     />
                   </div>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
-                    <Play size={24} className="text-white fill-white" />
-                  </div>
                 </div>
-                <h3 className="text-xs font-semibold yt-text-primary mt-1.5 line-clamp-2 group-hover:text-[#3ea6ff]">
-                  {entry.title}
-                </h3>
-                <p className="text-[10px] text-yt-red font-bold mt-0.5">
-                  {formatVideoDuration(entry.progressSeconds)} / {entry.duration || formatVideoDuration(entry.durationSeconds)}
-                </p>
-              </Link>
+                <Link to={`/watch/${entry.videoId}`}>
+                  <h3 className="text-xs font-semibold yt-text-primary mt-1.5 line-clamp-2 group-hover:text-[#3ea6ff]">
+                    {entry.title}
+                  </h3>
+                  <p className="text-[10px] text-yt-red font-bold mt-0.5">
+                    {formatVideoDuration(entry.progressSeconds)} / {entry.duration || formatVideoDuration(entry.durationSeconds)}
+                  </p>
+                </Link>
+              </div>
             ))}
           </div>
         </section>
@@ -145,12 +137,12 @@ export default function Home() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="skeleton-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10" id="skeleton-grid">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="animate-pulse space-y-2">
-              <div className="yt-skeleton border border-[var(--yt-border)] h-36 w-full rounded-sm"></div>
-              <div className="h-4 yt-skeleton rounded-sm w-3/4"></div>
-              <div className="h-3 yt-skeleton rounded-sm w-1/2"></div>
+            <div key={i} className="animate-pulse space-y-3">
+              <div className="yt-skeleton w-full aspect-video rounded-xl" />
+              <div className="h-4 yt-skeleton rounded w-3/4" />
+              <div className="h-3 yt-skeleton rounded w-1/2" />
             </div>
           ))}
         </div>
@@ -160,36 +152,25 @@ export default function Home() {
         </div>
       ) : (
         /* Video cards grid */
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8" id="videos-showcase-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10" id="videos-showcase-grid">
           {videos.map((video) => (
-            <div key={video.id} className="flex flex-col gap-2 group cursor-pointer" id={`video-card-${video.id}`}>
-              {/* Thumbnail Container */}
-              <Link to={`/watch/${video.id}`} className="relative aspect-video w-full bg-black border border-[var(--yt-border)]">
-                <img
-                  src={video.thumbnailUrl}
-                  alt={video.title}
-                  referrerPolicy="no-referrer"
-                  className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-90"
-                />
-                {/* Duration Tag */}
-                <span className="absolute bottom-1 right-1 bg-black/80 text-white font-mono text-[11px] font-bold px-1 rounded-sm select-none">
-                  {video.duration}
-                </span>
-              </Link>
-
-              {/* Video Info metadata in Clean Minimalism */}
-              <div className="flex flex-col">
+            <div key={video.id} className="flex flex-col gap-2.5 group" id={`video-card-${video.id}`}>
+              <VideoThumbnail
+                src={video.thumbnailUrl}
+                alt={video.title}
+                duration={video.duration}
+                to={`/watch/${video.id}`}
+                showHoverPlay
+              />
+              <div className="flex flex-col px-0.5">
                 <Link to={`/watch/${video.id}`} className="block">
-                  <h3 className="text-sm font-semibold leading-tight yt-text-primary mb-1 line-clamp-2 hover:text-[#3ea6ff] transition-colors">
+                  <h3 className="text-sm font-semibold leading-snug yt-text-primary mb-1 line-clamp-2 group-hover:text-[#3ea6ff] transition-colors">
                     {video.title}
                   </h3>
                 </Link>
-                <div className="flex items-center gap-1">
-                  <Link to={`/channel/${video.authorId}`} className="text-xs yt-text-secondary hover:yt-text-primary cursor-pointer truncate font-medium">
-                    {video.authorName}
-                  </Link>
-                </div>
-                {/* View count & relative time */}
+                <Link to={`/channel/${video.authorId}`} className="text-xs yt-text-secondary hover:yt-text-primary truncate font-medium">
+                  {video.authorName}
+                </Link>
                 <p className="text-xs yt-text-secondary mt-0.5">
                   {formatViews(video.views)} • {formatRelativeDate(video.createdAt)}
                 </p>

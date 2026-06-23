@@ -10,6 +10,7 @@ import {
   SkipForward,
   RotateCcw,
 } from 'lucide-react';
+import LarpTubeXPrerollAd from './LarpTubeXPrerollAd.tsx';
 
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
@@ -38,6 +39,7 @@ type VideoPlayerProps = {
   resumeAtSeconds?: number;
   onResume?: () => void;
   onStartFromBeginning?: () => void;
+  showPreroll?: boolean;
 };
 
 export default function VideoPlayer({
@@ -52,10 +54,13 @@ export default function VideoPlayer({
   resumeAtSeconds = 0,
   onResume,
   onStartFromBeginning,
+  showPreroll = false,
 }: VideoPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [adActive, setAdActive] = useState(showPreroll);
 
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -100,6 +105,18 @@ export default function VideoPlayer({
       await document.exitFullscreen().catch(() => {});
     }
   }, []);
+
+  useEffect(() => {
+    setAdActive(showPreroll);
+  }, [showPreroll, src]);
+
+  const handleAdComplete = useCallback(() => {
+    setAdActive(false);
+    const vid = videoRef.current;
+    if (vid && !resumeOffered) {
+      vid.play().catch(() => {});
+    }
+  }, [resumeOffered]);
 
   useEffect(() => {
     const onFsChange = () => setFullscreen(!!document.fullscreenElement);
@@ -178,7 +195,7 @@ export default function VideoPlayer({
         poster={poster}
         className="w-full h-full object-contain bg-black"
         playsInline
-        autoPlay={autoPlay && !resumeOffered}
+        autoPlay={autoPlay && !resumeOffered && !adActive}
         onClick={togglePlay}
         onPlay={() => { setPlaying(true); setBuffering(false); }}
         onPause={() => { setPlaying(false); setShowControls(true); }}
@@ -189,7 +206,11 @@ export default function VideoPlayer({
         onEnded={() => setShowControls(true)}
       />
 
-      {resumeOffered && (
+      {adActive && (
+        <LarpTubeXPrerollAd variant="video" onComplete={handleAdComplete} />
+      )}
+
+      {resumeOffered && !adActive && (
         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 z-20">
           <p className="text-white text-sm font-bold">
             Продолжить с {formatVideoDuration(resumeAtSeconds)}?
@@ -227,7 +248,7 @@ export default function VideoPlayer({
       </div>
 
       {/* Center play / buffering */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className={`absolute inset-0 flex items-center justify-center pointer-events-none ${adActive ? 'hidden' : ''}`}>
         {buffering && (
           <div className="w-12 h-12 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
         )}
@@ -245,7 +266,7 @@ export default function VideoPlayer({
 
       {/* Bottom controls */}
       <div
-        className={`absolute inset-x-0 bottom-0 px-3 pb-3 pt-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-300 ${showControls || !playing ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-x-0 bottom-0 px-3 pb-3 pt-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-300 ${adActive ? 'hidden' : ''} ${showControls || !playing ? 'opacity-100' : 'opacity-0'}`}
       >
         {/* Progress bar */}
         <div

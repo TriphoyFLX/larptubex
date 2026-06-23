@@ -6,6 +6,7 @@ import api, { uploadFile } from '../api/index.ts';
 import { Video, Short, CommunityPost, Playlist } from '../types.ts';
 import { formatViews, formatRelativeDate, DEFAULT_AVATAR, formatChannelHandle, isSameUser } from '../utils.ts';
 import HashtagList from '../components/HashtagList.tsx';
+import VideoThumbnail from '../components/VideoThumbnail.tsx';
 import { setPageMeta } from '../seo.ts';
 
 export default function Channel() {
@@ -267,16 +268,21 @@ export default function Channel() {
             {videos.length === 0 ? (
               <p className="text-center text-xs yt-text-muted py-10">В этой вкладке пусто.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8">
                 {videos.map((v) => (
-                  <Link key={v.id} to={`/watch/${v.id}`} className="block group">
-                    <div className="relative aspect-video overflow-hidden border border-[var(--yt-border)] bg-black">
-                      <img src={v.thumbnailUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="Cover" />
-                      <span className="absolute bottom-1 right-1 bg-black/80 font-mono text-[9px] px-1 rounded text-white">{v.duration}</span>
-                    </div>
-                    <h4 className="font-bold text-[11px] yt-text-primary mt-2 leading-tight line-clamp-2 uppercase-none">{v.title}</h4>
+                  <div key={v.id} className="group">
+                    <VideoThumbnail
+                      src={v.thumbnailUrl}
+                      alt={v.title}
+                      duration={v.duration}
+                      to={`/watch/${v.id}`}
+                      showHoverPlay
+                    />
+                    <Link to={`/watch/${v.id}`}>
+                      <h4 className="font-bold text-[11px] yt-text-primary mt-2 leading-tight line-clamp-2">{v.title}</h4>
+                    </Link>
                     <span className="text-[10px] yt-text-muted mt-0.5 block">{formatViews(v.views)} • {formatRelativeDate(v.createdAt)}</span>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}
