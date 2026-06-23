@@ -1,0 +1,73 @@
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export const UPLOADS_ROOT = path.join(__dirname, '../../uploads');
+
+const SUBDIRS = ['videos', 'thumbnails', 'images', 'avatars'] as const;
+export type UploadType = (typeof SUBDIRS)[number];
+
+export function ensureUploadDirs() {
+  for (const dir of SUBDIRS) {
+    fs.mkdirSync(path.join(UPLOADS_ROOT, dir), { recursive: true });
+  }
+}
+
+const MIME_MAP: Record<UploadType, string[]> = {
+  videos: ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'],
+  thumbnails: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  images: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  avatars: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+};
+
+const MAX_SIZE: Record<UploadType, number> = {
+  videos: 500 * 1024 * 1024,
+  thumbnails: 10 * 1024 * 1024,
+  images: 10 * 1024 * 1024,
+  avatars: 5 * 1024 * 1024,
+};
+
+function extFromMime(mime: string): string {
+  const map: Record<string, string> = {
+    'video/mp4': '.mp4',
+    'video/webm': '.webm',
+    'video/quicktime': '.mov',
+    'video/x-msvideo': '.avi',
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
+    'image/gif': '.gif',
+  };
+  return map[mime] || '';
+}
+
+export function createUploader(type: UploadType) {
+  const storage = multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      cb(null, path.join(UPLOADS_ROOT, type));
+    },
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname) || extFromMime(file.mimetype);
+      const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${ext}`;
+      cb(null, unique);
+    },
+  });
+
+  return multer({
+    storage,
+    limits: { fileSize: MAX_SIZE[type] },
+    fileFilter: (_req, file, cb) => {
+      if (MIME_MAP[type].includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Недопустимый тип файла: ${file.mimetype}`));
+      }
+    },
+  });
+}
+
+export function publicUrl(type: UploadType, filename: string): string {
+  return `/uploads/${type}/${filename}`;
+}

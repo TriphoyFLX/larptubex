@@ -1,0 +1,214 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  uid          String?        @unique
+  email        String         @unique
+  password     String?
+  displayName  String         @map("display_name")
+  avatar       String?
+  bio          String?
+  isAdmin      Boolean        @default(false) @map("is_admin")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  videos       Video[]
+  shorts       Short[]
+  posts        Post[]
+  comments     Comment[]
+  likes        Like[]
+
+  // Self-referencing relative models for subscriptions
+  subscriptions Subscription[] @relation("subscriber")
+  channels      Subscription[] @relation("channel")
+
+  notifications RecipientNotifications[] @relation("recipient")
+  triggeredNotifications RecipientNotifications[] @relation("trigger")
+  
+  playlists     Playlist[]
+  viewHistory   ViewHistory[]
+
+  @@map("users")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
+  videos    Video[]
+
+  @@map("categories")
+}
+
+model Video {
+  id           Int            @id @default(autoincrement())
+  title        String
+  description  String?
+  videoUrl     String         @map("video_url")
+  thumbnailUrl String         @map("thumbnail_url")
+  views        Int            @default(0)
+  duration     String         @default("0:00")
+  authorId     Int            @map("author_id")
+  categoryId   Int?           @map("category_id")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  author       User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category     Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  comments     Comment[]
+  likes        Like[]
+  playlistVideos PlaylistVideo[]
+  viewHistory  ViewHistory[]
+  notifications RecipientNotifications[]
+
+  @@map("videos")
+}
+
+model Short {
+  id           Int            @id @default(autoincrement())
+  title        String
+  description  String?
+  videoUrl     String         @map("video_url")
+  views        Int            @default(0)
+  authorId     Int            @map("author_id")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  author       User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments     Comment[]
+  likes        Like[]
+  notifications RecipientNotifications[]
+
+  @@map("shorts")
+}
+
+model Post {
+  id           Int            @id @default(autoincrement())
+  content      String
+  imageUrl     String?        @map("image_url")
+  authorId     Int            @map("author_id")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  author       User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments     Comment[]
+  likes        Like[]
+  notifications RecipientNotifications[]
+
+  @@map("posts")
+}
+
+model Comment {
+  id           Int            @id @default(autoincrement())
+  content      String
+  authorId     Int            @map("author_id")
+  videoId      Int?           @map("video_id")
+  shortId      Int?           @map("short_id")
+  postId       Int?           @map("post_id")
+  parentId     Int?           @map("parent_id")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  author       User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  video        Video?         @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  short        Short?         @relation(fields: [shortId], references: [id], onDelete: Cascade)
+  post         Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent       Comment?       @relation("replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies      Comment[]      @relation("replies")
+  likes        Like[]
+
+  @@map("comments")
+}
+
+model Like {
+  id           Int            @id @default(autoincrement())
+  userId       Int            @map("user_id")
+  videoId      Int?           @map("video_id")
+  shortId      Int?           @map("short_id")
+  postId       Int?           @map("post_id")
+  commentId    Int?           @map("comment_id")
+  isDislike    Boolean        @default(false) @map("is_dislike")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video        Video?         @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  short        Short?         @relation(fields: [shortId], references: [id], onDelete: Cascade)
+  post         Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment      Comment?       @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@map("likes")
+}
+
+model Subscription {
+  id           Int            @id @default(autoincrement())
+  subscriberId Int            @map("subscriber_id")
+  channelId    Int            @map("channel_id")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  subscriber   User           @relation("subscriber", fields: [subscriberId], references: [id], onDelete: Cascade)
+  channel      User           @relation("channel", fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model RecipientNotifications {
+  id            Int           @id @default(autoincrement())
+  userId        Int           @map("user_id")
+  type          String
+  title         String
+  body          String
+  isRead        Boolean       @default(false) @map("is_read")
+  triggerUserId Int?          @map("trigger_user_id")
+  videoId       Int?          @map("video_id")
+  shortId       Int?          @map("short_id")
+  postId        Int?          @map("post_id")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  user          User          @relation("recipient", fields: [userId], references: [id], onDelete: Cascade)
+  triggerUser   User?         @relation("trigger", fields: [triggerUserId], references: [id], onDelete: Cascade)
+  video         Video?        @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  short         Short?        @relation(fields: [shortId], references: [id], onDelete: Cascade)
+  post          Post?         @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Playlist {
+  id           Int            @id @default(autoincrement())
+  name         String
+  description  String?
+  authorId     Int            @map("author_id")
+  isPrivate    Boolean        @default(false) @map("is_private")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  author       User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  playlistVideos PlaylistVideo[]
+
+  @@map("playlists")
+}
+
+model PlaylistVideo {
+  id         Int              @id @default(autoincrement())
+  playlistId Int              @map("playlist_id")
+  videoId    Int              @map("video_id")
+  position   Int              @default(0)
+
+  playlist   Playlist         @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  video      Video            @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("playlist_videos")
+}
+
+model ViewHistory {
+  id       Int                @id @default(autoincrement())
+  userId   Int                @map("user_id")
+  videoId  Int                @map("video_id")
+  viewedAt DateTime           @default(now()) @map("viewed_at")
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video    Video              @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("view_history")
+}
