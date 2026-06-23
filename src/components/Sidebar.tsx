@@ -55,6 +55,17 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
           <Users size={16} />
           <span>Сообщество</span>
         </NavLink>
+        {user && (
+          <NavLink
+            to="/history"
+            className={({ isActive }) =>
+              `flex items-center gap-4 px-6 py-2 transition-colors font-semibold text-sm ${isActive ? 'bg-[#e2e2e2] border-l-4 border-l-[#cc181e] text-gray-950' : 'border-l-4 border-transparent hover:bg-[#e2e2e2] text-[#444]'}`
+            }
+          >
+            <History size={16} />
+            <span>История</span>
+          </NavLink>
+        )}
       </div>
 
       <div className="h-[1px] bg-[#e2e2e2] my-3 mx-4"></div>

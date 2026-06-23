@@ -18,6 +18,7 @@ import Upload from './pages/Upload.tsx';
 import Admin from './pages/Admin.tsx';
 import Login from './pages/Login.tsx';
 import Register from './pages/Register.tsx';
+import HistoryPage from './pages/History.tsx';
 
 export default function App() {
   const { initialize, loading } = useAuthStore();
@@ -70,6 +71,7 @@ export default function App() {
               <Route path="/playlist/:id" element={<PlaylistDetail />} />
               <Route path="/community" element={<Community />} />
               <Route path="/search" element={<Search />} />
+              <Route path="/history" element={<HistoryPage />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/login" element={<Login />} />

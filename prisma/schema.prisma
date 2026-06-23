@@ -23,6 +23,7 @@ model User {
   posts        Post[]
   comments     Comment[]
   likes        Like[]
+  shortViewHistory ShortViewHistory[]
 
   // Self-referencing relative models for subscriptions
   subscriptions Subscription[] @relation("subscriber")
@@ -82,6 +83,7 @@ model Short {
   comments     Comment[]
   likes        Like[]
   notifications RecipientNotifications[]
+  viewHistory  ShortViewHistory[]
 
   @@map("shorts")
 }
@@ -202,13 +204,44 @@ model PlaylistVideo {
 }
 
 model ViewHistory {
-  id       Int                @id @default(autoincrement())
-  userId   Int                @map("user_id")
-  videoId  Int                @map("video_id")
-  viewedAt DateTime           @default(now()) @map("viewed_at")
+  id              Int      @id @default(autoincrement())
+  userId          Int?     @map("user_id")
+  sessionId       String?  @map("session_id")
+  videoId         Int      @map("video_id")
+  progressSeconds Float    @default(0) @map("progress_seconds")
+  durationSeconds Float    @default(0) @map("duration_seconds")
+  completed       Boolean  @default(false)
+  viewCounted     Boolean  @default(false) @map("view_counted")
+  viewedAt        DateTime @default(now()) @map("viewed_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  video    Video              @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user     User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video    Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, videoId])
+  @@unique([sessionId, videoId])
+  @@index([userId, updatedAt])
+  @@index([sessionId, updatedAt])
   @@map("view_history")
+}
+
+model ShortViewHistory {
+  id              Int      @id @default(autoincrement())
+  userId          Int?     @map("user_id")
+  sessionId       String?  @map("session_id")
+  shortId         Int      @map("short_id")
+  progressSeconds Float    @default(0) @map("progress_seconds")
+  durationSeconds Float    @default(0) @map("duration_seconds")
+  completed       Boolean  @default(false)
+  viewCounted     Boolean  @default(false) @map("view_counted")
+  viewedAt        DateTime @default(now()) @map("viewed_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  short Short  @relation(fields: [shortId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shortId])
+  @@unique([sessionId, shortId])
+  @@index([userId, updatedAt])
+  @@map("short_view_history")
 }

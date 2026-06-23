@@ -53,3 +53,25 @@ export const requireAuth = async (
     return res.status(401).json({ error: 'Unauthorized: Invalid token' });
   }
 };
+
+/** Sets req.user when a valid token is present; does not reject unauthenticated requests. */
+export const optionalAuth = async (
+  req: AuthRequest,
+  _res: Response,
+  next: NextFunction
+) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next();
+  }
+
+  const token = authHeader.split('Bearer ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    const foundUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (foundUser) req.user = foundUser;
+  } catch {
+    // ignore invalid token for optional auth
+  }
+  next();
+};

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ThumbsUp, ThumbsDown, MessageSquare, CornerDownRight, Check, Play, ChevronDown, ChevronUp } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MessageSquare, CornerDownRight, Check, Play, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { useAuthStore } from '../store/authStore.ts';
 import api from '../api/index.ts';
 import { Video, Comment } from '../types.ts';
-import { formatViews, formatRelativeDate, buildCommentTree, DEFAULT_AVATAR } from '../utils.ts';
+import { formatViews, formatRelativeDate, buildCommentTree, DEFAULT_AVATAR, formatVideoDuration } from '../utils.ts';
+import { useWatchProgress } from '../hooks/useWatchProgress.ts';
 
 export default function Watch() {
   const { id } = useParams();
@@ -18,6 +19,18 @@ export default function Watch() {
   
   const [loading, setLoading] = useState(true);
   const [showFullDesc, setShowFullDesc] = useState(false);
+  const [savedProgress, setSavedProgress] = useState(0);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const { resumeOffered, handleResume, handleStartFromBeginning } = useWatchProgress(videoRef, {
+    videoId: id ? Number(id) : undefined,
+    initialProgress: savedProgress,
+    enabled: !!video && !!id,
+    onViewCounted: (views) => {
+      setVideo((prev) => prev ? { ...prev, views } : prev);
+    },
+  });
 
   useEffect(() => {
     loadVideoAndDetails();
@@ -28,7 +41,7 @@ export default function Watch() {
     setLoading(true);
     try {
       const videoRes = await api.get(`/api/videos/${id}`);
-      const { video: videoData, likesCount, dislikesCount, isLiked, isDisliked, isSubscribed, subscribersCount } = videoRes.data;
+      const { video: videoData, likesCount, dislikesCount, isLiked, isDisliked, isSubscribed, subscribersCount, watchProgress } = videoRes.data;
       setVideo({
         ...videoData,
         likesCount,
@@ -36,7 +49,13 @@ export default function Watch() {
         viewerRating: isLiked ? 'like' : isDisliked ? 'dislike' : null,
         isSubscribed,
         subscribersCount,
+        watchProgress,
       });
+      if (watchProgress?.progressSeconds > 3 && !watchProgress.completed) {
+        setSavedProgress(watchProgress.progressSeconds);
+      } else {
+        setSavedProgress(0);
+      }
 
       const commentsRes = await api.get(`/api/videos/${id}/comments`);
       setComments(buildCommentTree(commentsRes.data) as Comment[]);
@@ -218,13 +237,37 @@ export default function Watch() {
         {/* HTML5 video player styled like classic black screen */}
         <div className="bg-black aspect-video w-full relative border border-gray-300" id="video-frame">
           <video
+            ref={videoRef}
             src={video.videoUrl}
             controls
-            autoPlay
             className="w-full h-full object-contain"
             id="media-source"
             poster={video.thumbnailUrl}
           />
+
+          {resumeOffered && (
+            <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 z-10">
+              <p className="text-white text-sm font-bold">
+                Продолжить с {formatVideoDuration(savedProgress)}?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleResume}
+                  className="flex items-center gap-1.5 bg-yt-red text-white px-4 py-2 text-xs font-bold uppercase border border-yt-darkred hover:bg-yt-darkred"
+                >
+                  <Play size={14} className="fill-white" />
+                  Продолжить
+                </button>
+                <button
+                  onClick={handleStartFromBeginning}
+                  className="flex items-center gap-1.5 bg-white/10 text-white px-4 py-2 text-xs font-bold uppercase border border-white/30 hover:bg-white/20"
+                >
+                  <RotateCcw size={12} />
+                  С начала
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Video Title */}

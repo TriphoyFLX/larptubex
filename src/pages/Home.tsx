@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, Clock, Award, Play } from 'lucide-react';
+import { Play, Clock } from 'lucide-react';
 import api from '../api/index.ts';
-import { Video, Category } from '../types.ts';
-import { formatViews, formatRelativeDate } from '../utils.ts';
+import { useAuthStore } from '../store/authStore.ts';
+import { Video, Category, WatchHistoryEntry } from '../types.ts';
+import { formatViews, formatRelativeDate, formatVideoDuration } from '../utils.ts';
 
 export default function Home() {
+  const { user } = useAuthStore();
   const [videos, setVideos] = useState<Video[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [continueWatching, setContinueWatching] = useState<WatchHistoryEntry[]>([]);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -18,6 +21,16 @@ export default function Home() {
   useEffect(() => {
     fetchVideos();
   }, [activeCategory]);
+
+  useEffect(() => {
+    if (user) {
+      api.get('/api/watch/continue', { params: { limit: 8 } })
+        .then((res) => setContinueWatching(res.data || []))
+        .catch(() => setContinueWatching([]));
+    } else {
+      setContinueWatching([]);
+    }
+  }, [user]);
 
   const fetchCategories = async () => {
     try {
@@ -64,6 +77,57 @@ export default function Home() {
           </button>
         ))}
       </div>
+
+      {continueWatching.length > 0 && (
+        <section className="mb-8" id="continue-watching-section">
+          <div className="flex items-center justify-between mb-4 border-b border-[#eee] pb-3">
+            <h2 className="text-base font-bold text-[#222] flex items-center gap-2">
+              <Clock size={16} className="text-yt-red" />
+              Продолжить просмотр
+            </h2>
+            <Link to="/history" className="text-[10px] font-bold text-blue-600 hover:underline uppercase">
+              Вся история →
+            </Link>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
+            {continueWatching.map((entry) => (
+              <Link
+                key={entry.id}
+                to={`/watch/${entry.videoId}`}
+                className="group shrink-0 w-44"
+              >
+                <div className="relative aspect-video bg-[#eee] border border-[#ddd] overflow-hidden">
+                  <img
+                    src={entry.thumbnailUrl}
+                    alt={entry.title}
+                    className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                  />
+                  {entry.duration && (
+                    <span className="absolute bottom-1 right-1 bg-black/80 text-white font-mono text-[10px] font-bold px-1">
+                      {entry.duration}
+                    </span>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800/50">
+                    <div
+                      className="h-full bg-yt-red"
+                      style={{ width: `${entry.progressPercent}%` }}
+                    />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+                    <Play size={24} className="text-white fill-white" />
+                  </div>
+                </div>
+                <h3 className="text-xs font-semibold text-[#333] mt-1.5 line-clamp-2 group-hover:text-blue-600">
+                  {entry.title}
+                </h3>
+                <p className="text-[10px] text-yt-red font-bold mt-0.5">
+                  {formatVideoDuration(entry.progressSeconds)} / {entry.duration || formatVideoDuration(entry.durationSeconds)}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="flex justify-between items-center mb-5 border-b border-[#eee] pb-4">
         <h2 className="text-lg font-medium text-[#222]" id="home-title-heading">

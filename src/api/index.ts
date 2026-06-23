@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getViewSessionId } from '../utils.ts';
 
 const api = axios.create({
   baseURL: '',
@@ -10,6 +11,7 @@ api.interceptors.request.use(
     if (customToken) {
       config.headers.Authorization = `Bearer ${customToken}`;
     }
+    config.headers['X-View-Session'] = getViewSessionId();
     return config;
   },
   (error) => Promise.reject(error)
@@ -70,6 +72,19 @@ export async function uploadFile(
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data.url;
+}
+
+export async function saveWatchProgress(payload: {
+  videoId?: number;
+  shortId?: number;
+  progressSeconds: number;
+  durationSeconds: number;
+}) {
+  const res = await api.post('/api/watch/progress', {
+    ...payload,
+    sessionId: getViewSessionId(),
+  });
+  return res.data;
 }
 
 export default api;

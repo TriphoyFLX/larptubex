@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore.ts';
 import api from '../api/index.ts';
 import { Short, Comment } from '../types.ts';
 import { DEFAULT_AVATAR } from '../utils.ts';
+import { useWatchProgress } from '../hooks/useWatchProgress.ts';
 
 interface ShortDetail extends Short {
   viewerRating?: 'like' | 'dislike' | null;
@@ -23,6 +24,17 @@ export default function Shorts() {
   const [newCommentText, setNewCommentText] = useState('');
 
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const activeVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  const currentShort = shortsList[activeIndex];
+
+  useWatchProgress(activeVideoRef, {
+    shortId: currentShort?.id,
+    enabled: !!currentShort,
+    onViewCounted: (views) => {
+      setActiveShortDetail((prev) => prev ? { ...prev, views } : prev);
+    },
+  });
 
   useEffect(() => {
     fetchShorts();
@@ -176,8 +188,6 @@ export default function Shorts() {
     );
   }
 
-  const currentShort = shortsList[activeIndex];
-
   return (
     <div className="flex-1 bg-gray-100 flex items-center justify-center py-6 px-4 md:px-0 relative h-[calc(100vh-50px)] overflow-hidden" id="shorts-panel">
       <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
@@ -202,7 +212,10 @@ export default function Shorts() {
       <div className="relative flex max-w-4xl w-full justify-center items-center h-full max-h-[640px]">
         <div className="relative aspect-[9/16] h-full max-h-[600px] bg-black border-2 border-gray-900 rounded shadow-2xl overflow-hidden" id="shorts-viewport-card">
           <video
-            ref={(el) => { videoRefs.current[activeIndex] = el as HTMLVideoElement; }}
+            ref={(el) => {
+              videoRefs.current[activeIndex] = el;
+              activeVideoRef.current = el;
+            }}
             src={currentShort.videoUrl}
             loop
             preload="auto"

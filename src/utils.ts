@@ -62,6 +62,24 @@ export function formatVideoDuration(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+export function parseDurationToSeconds(duration: string): number {
+  const parts = duration.split(':').map((p) => parseInt(p, 10) || 0);
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return parts[0] || 0;
+}
+
+const VIEW_SESSION_KEY = 'larptubex_view_session';
+
+export function getViewSessionId(): string {
+  let id = localStorage.getItem(VIEW_SESSION_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(VIEW_SESSION_KEY, id);
+  }
+  return id;
+}
+
 export async function readVideoDuration(file: File): Promise<string> {
   return new Promise((resolve) => {
     const video = document.createElement('video');

@@ -21,7 +21,17 @@ if (!process.env.DATABASE_URL) {
 }
 
 import { prisma } from './src/db/prisma.ts';
-import { requireAuth, AuthRequest } from './src/middleware/auth.ts';
+import { requireAuth, optionalAuth, AuthRequest } from './src/middleware/auth.ts';
+import {
+  upsertVideoProgress,
+  upsertShortProgress,
+  getVideoProgress,
+  getShortProgress,
+  getUserWatchHistory,
+  getUserShortHistory,
+  getContinueWatching,
+  getProgressPercent,
+} from './src/server/views.ts';
 
 const app = express();
 const PORT = 3000;
@@ -355,7 +365,7 @@ app.get('/api/videos', async (req, res) => {
   }
 });
 
-app.get('/api/videos/:id', async (req, res) => {
+app.get('/api/videos/:id', optionalAuth, async (req: AuthRequest, res) => {
   try {
     const videoId = Number(req.params.id);
     const video = await prisma.video.findUnique({
@@ -367,29 +377,21 @@ app.get('/api/videos/:id', async (req, res) => {
       return res.status(404).json({ error: 'Видео не найдено' });
     }
 
-    // Under-the-hood views counter update
-    const updatedVideo = await prisma.video.update({
-      where: { id: videoId },
-      data: { views: { increment: 1 } },
-      include: { author: true }
-    });
-
     const currentVideo = {
-      id: updatedVideo.id,
-      title: updatedVideo.title,
-      description: updatedVideo.description,
-      videoUrl: updatedVideo.videoUrl,
-      thumbnailUrl: updatedVideo.thumbnailUrl,
-      views: updatedVideo.views,
-      duration: updatedVideo.duration,
-      createdAt: updatedVideo.createdAt,
-      authorId: updatedVideo.authorId,
-      authorName: updatedVideo.author.displayName,
-      authorAvatar: updatedVideo.author.avatar,
-      categoryId: updatedVideo.categoryId,
+      id: video.id,
+      title: video.title,
+      description: video.description,
+      videoUrl: video.videoUrl,
+      thumbnailUrl: video.thumbnailUrl,
+      views: video.views,
+      duration: video.duration,
+      createdAt: video.createdAt,
+      authorId: video.authorId,
+      authorName: video.author.displayName,
+      authorAvatar: video.author.avatar,
+      categoryId: video.categoryId,
     };
 
-    // Calculate metadata for video
     const likesCount = await prisma.like.count({ where: { videoId, isDislike: false } });
     const dislikesCount = await prisma.like.count({ where: { videoId, isDislike: true } });
     const commentsCount = await prisma.comment.count({ where: { videoId } });
@@ -398,41 +400,49 @@ app.get('/api/videos/:id', async (req, res) => {
     let isLikedFlag = false;
     let isDislikedFlag = false;
     let isSubscribedFlag = false;
+    let watchProgress: {
+      progressSeconds: number;
+      durationSeconds: number;
+      progressPercent: number;
+      completed: boolean;
+    } | null = null;
 
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split('Bearer ')[1];
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
-        const authUserId = decoded.userId;
+    if (req.user) {
+      const checkLike = await prisma.like.findFirst({
+        where: { userId: req.user.id, videoId }
+      });
+      if (checkLike) {
+        isLikedFlag = !checkLike.isDislike;
+        isDislikedFlag = checkLike.isDislike;
+      }
 
-        const checkLike = await prisma.like.findFirst({
-          where: { userId: authUserId, videoId }
-        });
-        if (checkLike) {
-          isLikedFlag = !checkLike.isDislike;
-          isDislikedFlag = checkLike.isDislike;
+      const checkSub = await prisma.subscription.findFirst({
+        where: { subscriberId: req.user.id, channelId: currentVideo.authorId }
+      });
+      isSubscribedFlag = !!checkSub;
+
+      const progress = await getVideoProgress({ userId: req.user.id }, videoId);
+      if (progress) {
+        watchProgress = {
+          progressSeconds: progress.progressSeconds,
+          durationSeconds: progress.durationSeconds,
+          progressPercent: getProgressPercent(progress.progressSeconds, progress.durationSeconds),
+          completed: progress.completed,
+        };
+      }
+    } else {
+      const sessionId = req.headers['x-view-session'] as string | undefined;
+      if (sessionId) {
+        const progress = await getVideoProgress({ sessionId }, videoId);
+        if (progress) {
+          watchProgress = {
+            progressSeconds: progress.progressSeconds,
+            durationSeconds: progress.durationSeconds,
+            progressPercent: getProgressPercent(progress.progressSeconds, progress.durationSeconds),
+            completed: progress.completed,
+          };
         }
-
-        const checkSub = await prisma.subscription.findFirst({
-          where: { subscriberId: authUserId, channelId: currentVideo.authorId }
-        });
-        isSubscribedFlag = !!checkSub;
-
-        // Log view history (avoid duplicates within 30 min)
-        const recentView = await prisma.viewHistory.findFirst({
-          where: {
-            userId: authUserId,
-            videoId,
-            viewedAt: { gte: new Date(Date.now() - 30 * 60 * 1000) },
-          },
-        });
-        if (!recentView) {
-          await prisma.viewHistory.create({
-            data: { userId: authUserId, videoId },
-          });
-        }
-      } catch {}
+      }
     }
 
     res.json({
@@ -444,6 +454,7 @@ app.get('/api/videos/:id', async (req, res) => {
       isLiked: isLikedFlag,
       isDisliked: isDislikedFlag,
       isSubscribed: isSubscribedFlag,
+      watchProgress,
     });
   } catch (error) {
     console.error('Error fetching video details:', error);
@@ -611,7 +622,7 @@ app.get('/api/shorts', async (req, res) => {
   }
 });
 
-app.get('/api/shorts/:id', async (req, res) => {
+app.get('/api/shorts/:id', optionalAuth, async (req: AuthRequest, res) => {
   const shortId = Number(req.params.id);
   try {
     const currentShort = await prisma.short.findUnique({
@@ -621,33 +632,50 @@ app.get('/api/shorts/:id', async (req, res) => {
 
     if (!currentShort) return res.status(404).json({ error: 'Short not found' });
 
-    await prisma.short.update({
-      where: { id: shortId },
-      data: { views: { increment: 1 } }
-    });
-
     const likesCount = await prisma.like.count({ where: { shortId, isDislike: false } });
     const dislikesCount = await prisma.like.count({ where: { shortId, isDislike: true } });
     const commentsCount = await prisma.comment.count({ where: { shortId } });
 
     let isLiked = false;
     let isDisliked = false;
+    let watchProgress: {
+      progressSeconds: number;
+      durationSeconds: number;
+      progressPercent: number;
+      completed: boolean;
+    } | null = null;
 
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split('Bearer ')[1];
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
-        const authUserId = decoded.userId;
+    if (req.user) {
+      const rating = await prisma.like.findFirst({
+        where: { userId: req.user.id, shortId }
+      });
+      if (rating) {
+        isLiked = !rating.isDislike;
+        isDisliked = rating.isDislike;
+      }
 
-        const rating = await prisma.like.findFirst({
-          where: { userId: authUserId, shortId }
-        });
-        if (rating) {
-          isLiked = !rating.isDislike;
-          isDisliked = rating.isDislike;
+      const progress = await getShortProgress({ userId: req.user.id }, shortId);
+      if (progress) {
+        watchProgress = {
+          progressSeconds: progress.progressSeconds,
+          durationSeconds: progress.durationSeconds,
+          progressPercent: getProgressPercent(progress.progressSeconds, progress.durationSeconds),
+          completed: progress.completed,
+        };
+      }
+    } else {
+      const sessionId = req.headers['x-view-session'] as string | undefined;
+      if (sessionId) {
+        const progress = await getShortProgress({ sessionId }, shortId);
+        if (progress) {
+          watchProgress = {
+            progressSeconds: progress.progressSeconds,
+            durationSeconds: progress.durationSeconds,
+            progressPercent: getProgressPercent(progress.progressSeconds, progress.durationSeconds),
+            completed: progress.completed,
+          };
         }
-      } catch {}
+      }
     }
 
     res.json({
@@ -656,7 +684,7 @@ app.get('/api/shorts/:id', async (req, res) => {
         title: currentShort.title,
         description: currentShort.description,
         videoUrl: currentShort.videoUrl,
-        views: currentShort.views + 1,
+        views: currentShort.views,
         createdAt: currentShort.createdAt,
         authorId: currentShort.authorId,
         authorName: currentShort.author.displayName,
@@ -666,7 +694,8 @@ app.get('/api/shorts/:id', async (req, res) => {
       dislikesCount,
       commentsCount,
       isLiked,
-      isDisliked
+      isDisliked,
+      watchProgress,
     });
   } catch {
     res.status(500).json({ error: 'Short loading failure' });
@@ -985,6 +1014,123 @@ app.delete('/api/comments/:id', requireAuth, async (req: AuthRequest, res) => {
   }
 });
 
+// --- Watch Progress & History API ---
+function resolveWatchIdentity(req: AuthRequest, sessionId?: string) {
+  if (req.user) return { userId: req.user.id };
+  if (sessionId && typeof sessionId === 'string' && sessionId.length >= 8) {
+    return { sessionId };
+  }
+  return null;
+}
+
+app.post('/api/watch/progress', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const { videoId, shortId, progressSeconds, durationSeconds, sessionId } = req.body;
+    const identity = resolveWatchIdentity(req, sessionId);
+
+    if (!identity) {
+      return res.status(401).json({ error: 'Требуется авторизация или sessionId' });
+    }
+
+    const progress = Math.max(0, Number(progressSeconds) || 0);
+    const duration = Math.max(0, Number(durationSeconds) || 0);
+
+    if (videoId) {
+      const record = await upsertVideoProgress(identity, Number(videoId), progress, duration);
+      const video = await prisma.video.findUnique({ where: { id: Number(videoId) } });
+      return res.json({
+        success: true,
+        progressSeconds: record?.progressSeconds ?? progress,
+        durationSeconds: record?.durationSeconds ?? duration,
+        progressPercent: getProgressPercent(progress, duration),
+        completed: record?.completed ?? false,
+        viewCounted: record?.viewCounted ?? false,
+        views: video?.views ?? 0,
+      });
+    }
+
+    if (shortId) {
+      const record = await upsertShortProgress(identity, Number(shortId), progress, duration);
+      const short = await prisma.short.findUnique({ where: { id: Number(shortId) } });
+      return res.json({
+        success: true,
+        progressSeconds: record?.progressSeconds ?? progress,
+        durationSeconds: record?.durationSeconds ?? duration,
+        progressPercent: getProgressPercent(progress, duration),
+        completed: record?.completed ?? false,
+        viewCounted: record?.viewCounted ?? false,
+        views: short?.views ?? 0,
+      });
+    }
+
+    res.status(400).json({ error: 'Укажите videoId или shortId' });
+  } catch (error) {
+    console.error('Watch progress error:', error);
+    res.status(500).json({ error: 'Ошибка сохранения прогресса' });
+  }
+});
+
+app.get('/api/watch/continue', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const limit = Math.min(50, Number(req.query.limit) || 12);
+    const items = await getContinueWatching(req.user!.id, limit);
+    res.json(items);
+  } catch (error) {
+    console.error('Continue watching error:', error);
+    res.status(500).json({ error: 'Ошибка загрузки' });
+  }
+});
+
+app.get('/api/watch/history', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const filter = (req.query.filter as 'all' | 'continue' | 'completed') || 'all';
+    const limit = Math.min(100, Number(req.query.limit) || 50);
+    const videos = await getUserWatchHistory(req.user!.id, filter, limit);
+    const shorts = filter === 'all' ? await getUserShortHistory(req.user!.id, 20) : [];
+    res.json({ videos, shorts });
+  } catch (error) {
+    console.error('History error:', error);
+    res.status(500).json({ error: 'Ошибка загрузки истории' });
+  }
+});
+
+app.delete('/api/watch/history', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    await prisma.$transaction([
+      prisma.viewHistory.deleteMany({ where: { userId: req.user!.id } }),
+      prisma.shortViewHistory.deleteMany({ where: { userId: req.user!.id } }),
+    ]);
+    res.json({ success: true, message: 'История просмотров очищена' });
+  } catch (error) {
+    res.status(500).json({ error: 'Ошибка очистки истории' });
+  }
+});
+
+app.delete('/api/watch/history/:id', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const id = Number(req.params.id);
+    const type = req.query.type as string;
+
+    if (type === 'short') {
+      const record = await prisma.shortViewHistory.findFirst({
+        where: { id, userId: req.user!.id },
+      });
+      if (!record) return res.status(404).json({ error: 'Запись не найдена' });
+      await prisma.shortViewHistory.delete({ where: { id } });
+    } else {
+      const record = await prisma.viewHistory.findFirst({
+        where: { id, userId: req.user!.id },
+      });
+      if (!record) return res.status(404).json({ error: 'Запись не найдена' });
+      await prisma.viewHistory.delete({ where: { id } });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Ошибка удаления' });
+  }
+});
+
 // --- 7. Channels / Subscriptions API ---
 app.get('/api/channels/:id', async (req, res) => {
   const authorId = Number(req.params.id);
@@ -1188,24 +1334,19 @@ app.get('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
   try {
     const userDetail = req.user!;
     
-    // Fetch user view history limits
-    const historyList = await prisma.viewHistory.findMany({
-      where: { userId: userDetail.id },
-      include: {
-        video: {
-          include: { author: true }
-        }
-      },
-      orderBy: { viewedAt: 'desc' },
-      take: 10
-    });
+    const historyList = await getUserWatchHistory(userDetail.id, 'all', 10);
 
     const parsedHistory = historyList.map(h => ({
       videoId: h.videoId,
       viewedAt: h.viewedAt,
-      title: h.video.title,
-      thumbnailUrl: h.video.thumbnailUrl,
-      authorName: h.video.author.displayName,
+      updatedAt: h.updatedAt,
+      title: h.title,
+      thumbnailUrl: h.thumbnailUrl,
+      authorName: h.authorName,
+      progressSeconds: h.progressSeconds,
+      durationSeconds: h.durationSeconds,
+      progressPercent: h.progressPercent,
+      completed: h.completed,
     }));
 
     // Subscribed channels

@@ -33,6 +33,7 @@ export interface Video {
   subscribersCount?: number;
   viewerRating?: 'like' | 'dislike' | null;
   isSubscribed?: boolean;
+  watchProgress?: WatchProgress | null;
 }
 
 export interface Short {
@@ -93,4 +94,32 @@ export interface Playlist {
   isPrivate: boolean;
   createdAt: string;
   videos?: Video[];
+}
+
+export interface WatchProgress {
+  progressSeconds: number;
+  durationSeconds: number;
+  progressPercent: number;
+  completed: boolean;
+}
+
+export interface WatchHistoryEntry {
+  id: number;
+  type: 'video' | 'short';
+  videoId?: number;
+  shortId?: number;
+  title: string;
+  thumbnailUrl?: string;
+  videoUrl?: string;
+  duration?: string;
+  views: number;
+  authorId: number;
+  authorName: string;
+  authorAvatar: string | null;
+  progressSeconds: number;
+  durationSeconds: number;
+  progressPercent: number;
+  completed: boolean;
+  viewedAt: string;
+  updatedAt: string;
 }
