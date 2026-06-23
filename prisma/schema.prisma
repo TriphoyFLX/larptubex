@@ -154,6 +154,7 @@ model Subscription {
   subscriber   User           @relation("subscriber", fields: [subscriberId], references: [id], onDelete: Cascade)
   channel      User           @relation("channel", fields: [channelId], references: [id], onDelete: Cascade)
 
+  @@unique([subscriberId, channelId])
   @@map("subscriptions")
 }
 

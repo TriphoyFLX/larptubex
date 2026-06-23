@@ -27,7 +27,10 @@ export default function Home() {
   useEffect(() => {
     if (user) {
       api.get('/api/watch/continue', { params: { limit: 8 } })
-        .then((res) => setContinueWatching(res.data || []))
+        .then((res) => {
+          const data = res.data;
+          setContinueWatching(Array.isArray(data) ? data : []);
+        })
         .catch(() => setContinueWatching([]));
     } else {
       setContinueWatching([]);

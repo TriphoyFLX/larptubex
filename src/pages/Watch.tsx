@@ -13,7 +13,7 @@ import {
 import { useAuthStore } from '../store/authStore.ts';
 import api from '../api/index.ts';
 import { Video, Comment } from '../types.ts';
-import { formatViews, formatRelativeDate, buildCommentTree, DEFAULT_AVATAR } from '../utils.ts';
+import { formatViews, formatRelativeDate, buildCommentTree, DEFAULT_AVATAR, isSameUser } from '../utils.ts';
 import { setPageMeta } from '../seo.ts';
 import { useWatchProgress } from '../hooks/useWatchProgress.ts';
 import VideoPlayer from '../components/VideoPlayer.tsx';
@@ -130,6 +130,7 @@ export default function Watch() {
 
   const handleSubscribe = async () => {
     if (!user) return alert('Войдите, чтобы подписаться на канал!');
+    if (!video || isSameUser(user.id, video.authorId)) return;
     if (!video) return;
     try {
       const res = await api.post(`/api/channels/${video.authorId}/subscribe`);
@@ -235,7 +236,7 @@ export default function Watch() {
             </Link>
             <span className="text-[11px] yt-text-secondary">{video.subscribersCount || 0} подписчиков</span>
           </div>
-          {user?.id !== video.authorId && (
+          {!isSameUser(user?.id, video.authorId) && (
             <button
               onClick={handleSubscribe}
               className={`ml-1 px-4 py-2 rounded-full font-bold text-xs transition-all shrink-0 ${

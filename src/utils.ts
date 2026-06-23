@@ -73,6 +73,14 @@ export function parseDurationToSeconds(duration: string): number {
   return parts[0] || 0;
 }
 
+export function isSameUser(
+  a: number | string | null | undefined,
+  b: number | string | null | undefined
+): boolean {
+  if (a == null || b == null) return false;
+  return Number(a) === Number(b);
+}
+
 const VIEW_SESSION_KEY = 'larptubex_view_session';
 
 export function getViewSessionId(): string {

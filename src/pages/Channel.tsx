@@ -4,7 +4,7 @@ import { Play, Flame, Users, BookOpen, AlertCircle, Calendar, Eye, Heart, Plus }
 import { useAuthStore } from '../store/authStore.ts';
 import api, { uploadFile } from '../api/index.ts';
 import { Video, Short, CommunityPost, Playlist } from '../types.ts';
-import { formatViews, formatRelativeDate, DEFAULT_AVATAR, formatChannelHandle } from '../utils.ts';
+import { formatViews, formatRelativeDate, DEFAULT_AVATAR, formatChannelHandle, isSameUser } from '../utils.ts';
 import { setPageMeta } from '../seo.ts';
 
 export default function Channel() {
@@ -75,6 +75,7 @@ export default function Channel() {
       alert('Войдите, чтобы подписаться на канал!');
       return;
     }
+    if (isOwner) return;
     try {
       const res = await api.post(`/api/channels/${id}/subscribe`);
       setChannelData({
@@ -125,7 +126,7 @@ export default function Channel() {
     }
   };
 
-  const isOwner = user?.id === Number(id);
+  const isOwner = isSameUser(user?.id, id);
 
   if (loading) {
     return (

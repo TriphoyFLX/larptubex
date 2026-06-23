@@ -41,6 +41,7 @@ import {
   validateUserPassword,
   createRateLimiter,
 } from './src/server/security.ts';
+import { canSubscribeToChannel, validChannelSubscriptionsWhere } from './src/server/social.ts';
 
 const app = express();
 const PORT = 3000;
@@ -263,6 +264,21 @@ async function ensureAdminAccount() {
 
 // Seeding standard categories on bootup
 seedDatabase();
+
+async function cleanupInvalidSubscriptions() {
+  try {
+    const removed = await prisma.$executeRawUnsafe(
+      'DELETE FROM subscriptions WHERE subscriber_id = channel_id'
+    );
+    if (typeof removed === 'number' && removed > 0) {
+      console.log(`[social] Removed ${removed} self-subscription(s)`);
+    }
+  } catch (e) {
+    console.warn('[social] Could not clean self-subscriptions:', e);
+  }
+}
+
+cleanupInvalidSubscriptions();
 
 // --------------------------------------------------------------------------------
 // API ROUTES
@@ -506,7 +522,9 @@ app.get('/api/videos/:id', optionalAuth, async (req: AuthRequest, res) => {
     const likesCount = await prisma.like.count({ where: { videoId, isDislike: false } });
     const dislikesCount = await prisma.like.count({ where: { videoId, isDislike: true } });
     const commentsCount = await prisma.comment.count({ where: { videoId } });
-    const authorSubsCount = await prisma.subscription.count({ where: { channelId: currentVideo.authorId } });
+    const authorSubsCount = await prisma.subscription.count({
+      where: validChannelSubscriptionsWhere(currentVideo.authorId),
+    });
 
     let isLikedFlag = false;
     let isDislikedFlag = false;
@@ -527,10 +545,12 @@ app.get('/api/videos/:id', optionalAuth, async (req: AuthRequest, res) => {
         isDislikedFlag = checkLike.isDislike;
       }
 
-      const checkSub = await prisma.subscription.findFirst({
-        where: { subscriberId: req.user.id, channelId: currentVideo.authorId }
-      });
-      isSubscribedFlag = !!checkSub;
+      if (req.user.id !== currentVideo.authorId) {
+        const checkSub = await prisma.subscription.findFirst({
+          where: { subscriberId: req.user.id, channelId: currentVideo.authorId },
+        });
+        isSubscribedFlag = !!checkSub;
+      }
 
       const progress = await getVideoProgress({ userId: req.user.id }, videoId);
       if (progress) {
@@ -1255,7 +1275,9 @@ app.get('/api/channels/:id', async (req, res) => {
     }
 
     // Subscriber stats
-    const subsCount = await prisma.subscription.count({ where: { channelId: authorId } });
+    const subsCount = await prisma.subscription.count({
+      where: validChannelSubscriptionsWhere(authorId),
+    });
     const videosCount = await prisma.video.count({ where: { authorId } });
     
     const viewsSumObj = await prisma.video.aggregate({
@@ -1274,9 +1296,13 @@ app.get('/api/channels/:id', async (req, res) => {
         const authUserId = decoded.userId;
 
         const count = await prisma.subscription.count({
-          where: { subscriberId: authUserId, channelId: authorId }
+          where: {
+            subscriberId: authUserId,
+            channelId: authorId,
+            NOT: { subscriberId: authorId },
+          },
         });
-        isSubscribed = count > 0;
+        isSubscribed = authUserId !== authorId && count > 0;
       } catch {}
     }
 
@@ -1302,13 +1328,19 @@ app.post('/api/channels/:id/subscribe', requireAuth, async (req: AuthRequest, re
   const channelId = Number(req.params.id);
   const subscriberId = req.user!.id;
 
-  if (channelId === subscriberId) {
-    return res.status(400).json({ error: 'Вы не можете подписаться на собственный канал' });
+  const blockReason = canSubscribeToChannel(subscriberId, channelId);
+  if (blockReason) {
+    return res.status(400).json({ error: blockReason });
   }
 
   try {
+    const channel = await prisma.user.findUnique({ where: { id: channelId } });
+    if (!channel) {
+      return res.status(404).json({ error: 'Канал не существует' });
+    }
+
     const existing = await prisma.subscription.findFirst({
-      where: { subscriberId, channelId }
+      where: { subscriberId, channelId },
     });
 
     if (existing) {
@@ -1464,10 +1496,13 @@ app.get('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
 
     // Subscribed channels
     const channelsList = await prisma.subscription.findMany({
-      where: { subscriberId: userDetail.id },
+      where: {
+        subscriberId: userDetail.id,
+        NOT: { channelId: userDetail.id },
+      },
       include: {
-        channel: true
-      }
+        channel: true,
+      },
     });
 
     const parsedChannels = channelsList.map(sub => ({
