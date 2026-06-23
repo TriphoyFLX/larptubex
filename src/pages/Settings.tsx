@@ -7,7 +7,7 @@ import {
 import { useAuthStore } from '../store/authStore.ts';
 import { useThemeStore, type ThemeMode } from '../store/themeStore.ts';
 import api, { uploadFile } from '../api/index.ts';
-import { DEFAULT_AVATAR, formatChannelHandle } from '../utils.ts';
+import { DEFAULT_AVATAR, formatChannelHandle, BANNER_RECOMMENDED, getImageFileDimensions } from '../utils.ts';
 import HashtagInput from '../components/HashtagInput.tsx';
 
 type SettingsTab = 'branding' | 'profile' | 'about' | 'appearance';
@@ -35,6 +35,7 @@ export default function Settings() {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerDimensions, setBannerDimensions] = useState<{ width: number; height: number } | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -116,13 +117,24 @@ export default function Settings() {
     markDirty();
   };
 
-  const onBannerSelect = (e: ChangeEvent<HTMLInputElement>) => {
+  const onBannerSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/') && !/\.(jpe?g|png|webp|gif|bmp|avif|heic|heif|svg|tiff?)$/i.test(file.name)) {
+      setError('Выберите файл изображения (JPG, PNG, GIF, WebP и др.)');
+      return;
+    }
     if (bannerPreview) URL.revokeObjectURL(bannerPreview);
     setBannerFile(file);
     setBannerPreview(URL.createObjectURL(file));
+    setError('');
     markDirty();
+    try {
+      const dims = await getImageFileDimensions(file);
+      setBannerDimensions(dims);
+    } catch {
+      setBannerDimensions(null);
+    }
   };
 
   const resetForm = () => {
@@ -138,6 +150,7 @@ export default function Settings() {
     if (bannerPreview) URL.revokeObjectURL(bannerPreview);
     setAvatarPreview(null);
     setBannerPreview(null);
+    setBannerDimensions(null);
     setDirty(false);
     setError('');
     setSuccess('');
@@ -187,6 +200,7 @@ export default function Settings() {
       if (bannerPreview) URL.revokeObjectURL(bannerPreview);
       setAvatarPreview(null);
       setBannerPreview(null);
+      setBannerDimensions(null);
       setDirty(false);
       setSuccess('Изменения сохранены и опубликованы на канале');
       setTimeout(() => setSuccess(''), 4000);
@@ -396,7 +410,9 @@ export default function Settings() {
                         Баннер канала
                       </label>
                       <p className="text-[11px] yt-text-secondary mb-3">
-                        Отображается в верхней части канала. Рекомендуемый размер: 2560×1440. Минимум: 2048×1152.
+                        Можно загрузить любое изображение — портрет, квадрат или панораму. Для наилучшего вида на канале рекомендуем{' '}
+                        <span className="font-semibold yt-text-primary">{BANNER_RECOMMENDED.width}×{BANNER_RECOMMENDED.height}</span> (16:9).
+                        Файл до 15 МБ.
                       </p>
                       <div
                         className="relative h-36 bg-[var(--yt-bg-hover)] border-2 border-dashed border-[var(--yt-border-strong)] overflow-hidden group cursor-pointer"
@@ -420,10 +436,18 @@ export default function Settings() {
                       <input
                         ref={bannerInputRef}
                         type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        accept="image/*"
                         className="hidden"
                         onChange={onBannerSelect}
                       />
+                      {bannerDimensions && (
+                        <p className="text-[10px] mt-2 yt-text-muted">
+                          Ваш файл: {bannerDimensions.width}×{bannerDimensions.height} px
+                          {bannerDimensions.width === BANNER_RECOMMENDED.width && bannerDimensions.height === BANNER_RECOMMENDED.height
+                            ? ' — отлично, идеальный размер!'
+                            : ` — рекомендуем ${BANNER_RECOMMENDED.width}×${BANNER_RECOMMENDED.height} для лучшего качества`}
+                        </p>
+                      )}
                       {previewBanner && (
                         <button
                           type="button"
@@ -432,6 +456,7 @@ export default function Settings() {
                             setBannerFile(null);
                             if (bannerPreview) URL.revokeObjectURL(bannerPreview);
                             setBannerPreview(null);
+                            setBannerDimensions(null);
                             markDirty();
                           }}
                           className="mt-2 text-[10px] text-red-600 font-bold hover:underline uppercase"

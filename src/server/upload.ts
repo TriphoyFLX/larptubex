@@ -20,15 +20,23 @@ const MIME_MAP: Record<UploadType, string[]> = {
   thumbnails: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   images: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   avatars: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-  banners: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  banners: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp', 'image/avif', 'image/heic', 'image/heif', 'image/tiff', 'image/svg+xml'],
 };
+
+const IMAGE_EXTENSIONS = /\.(jpe?g|png|webp|gif|bmp|avif|heic|heif|svg|tiff?)$/i;
+
+function isAllowedImage(file: Express.Multer.File, allowedMimes: string[]): boolean {
+  if (allowedMimes.includes(file.mimetype)) return true;
+  if (file.mimetype.startsWith('image/')) return true;
+  return IMAGE_EXTENSIONS.test(path.extname(file.originalname).toLowerCase());
+}
 
 const MAX_SIZE: Record<UploadType, number> = {
   videos: 500 * 1024 * 1024,
   thumbnails: 10 * 1024 * 1024,
   images: 10 * 1024 * 1024,
   avatars: 5 * 1024 * 1024,
-  banners: 8 * 1024 * 1024,
+  banners: 15 * 1024 * 1024,
 };
 
 function extFromMime(mime: string): string {
@@ -61,6 +69,12 @@ export function createUploader(type: UploadType) {
     storage,
     limits: { fileSize: MAX_SIZE[type] },
     fileFilter: (_req, file, cb) => {
+      if (type === 'banners') {
+        if (isAllowedImage(file, MIME_MAP.banners)) {
+          cb(null, true);
+          return;
+        }
+      }
       if (MIME_MAP[type].includes(file.mimetype)) {
         cb(null, true);
       } else {

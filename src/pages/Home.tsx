@@ -22,7 +22,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchVideos();
-  }, [activeCategory]);
+  }, [activeCategory, user]);
 
   useEffect(() => {
     if (user) {
@@ -53,10 +53,14 @@ export default function Home() {
       if (activeCategory) {
         params.category = activeCategory;
       }
-      const res = await api.get('/api/videos', { params });
+      params.limit = 24;
+      const res = await api.get('/api/recommendations/home', { params });
       setVideos(res.data);
     } catch (e) {
       console.error('Error loading videos:', e);
+      const fallbackParams = activeCategory ? { category: activeCategory } : {};
+      const fallback = await api.get('/api/videos', { params: fallbackParams });
+      setVideos(fallback.data);
     } finally {
       setLoading(false);
     }
@@ -136,7 +140,7 @@ export default function Home() {
 
       <div className="flex justify-between items-center mb-5 yt-border-b pb-4">
         <h2 className="text-lg font-medium yt-text-primary" id="home-title-heading">
-          Рекомендованные видео
+          {activeCategory ? 'Рекомендации в категории' : 'Рекомендованные видео'}
         </h2>
       </div>
 

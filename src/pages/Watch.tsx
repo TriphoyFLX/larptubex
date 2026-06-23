@@ -88,11 +88,14 @@ export default function Watch() {
   };
 
   const fetchSuggestedVideos = async () => {
+    if (!id) return;
     try {
-      const res = await api.get('/api/videos');
-      setSuggestedVideos(res.data.filter((v: Video) => v.id !== Number(id)).slice(0, 16));
+      const res = await api.get(`/api/videos/${id}/related`, { params: { limit: 16 } });
+      setSuggestedVideos(res.data);
     } catch (e) {
       console.error('Could not load suggestions:', e);
+      const fallback = await api.get('/api/videos');
+      setSuggestedVideos(fallback.data.filter((v: Video) => v.id !== Number(id)).slice(0, 16));
     }
   };
 

@@ -22,6 +22,24 @@ export function formatRelativeDate(dateString: string): string {
   return `${Math.floor(diffDays / 365)} г. назад`;
 }
 
+export const BANNER_RECOMMENDED = { width: 2560, height: 1440 };
+
+export function getImageFileDimensions(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Не удалось прочитать изображение'));
+    };
+    img.src = url;
+  });
+}
+
 export const DEFAULT_AVATAR = '/uploads/default-avatar.svg';
 
 export function formatChannelHandle(user: { handle?: string | null; id: number }): string {

@@ -50,6 +50,7 @@ import {
   getUserHashtagNames,
   normalizeHashtag,
 } from './src/server/hashtags.ts';
+import { getHomeRecommendations, getRelatedVideos } from './src/server/recommendations.ts';
 
 const app = express();
 const PORT = 3000;
@@ -500,6 +501,19 @@ app.get('/api/videos', async (req, res) => {
   }
 });
 
+app.get('/api/recommendations/home', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const limit = Number(req.query.limit) || 24;
+    const categoryId = req.query.category ? Number(req.query.category) : null;
+    const sessionId = req.headers['x-view-session'] as string | undefined;
+    const videos = await getHomeRecommendations(prisma, { user: req.user, sessionId }, { limit, categoryId });
+    res.json(videos);
+  } catch (error) {
+    console.error('Home recommendations error:', error);
+    res.status(500).json({ error: 'Ошибка при подборе рекомендаций' });
+  }
+});
+
 app.get('/api/videos/:id', optionalAuth, async (req: AuthRequest, res) => {
   try {
     const videoId = Number(req.params.id);
@@ -599,6 +613,28 @@ app.get('/api/videos/:id', optionalAuth, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Error fetching video details:', error);
     res.status(500).json({ error: 'Ошибка получения детализированной информации о видео' });
+  }
+});
+
+app.get('/api/videos/:id/related', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const videoId = Number(req.params.id);
+    if (!Number.isFinite(videoId)) {
+      return res.status(400).json({ error: 'Некорректный ID видео' });
+    }
+
+    const limit = Number(req.query.limit) || 16;
+    const sessionId = req.headers['x-view-session'] as string | undefined;
+    const videos = await getRelatedVideos(prisma, { user: req.user, sessionId }, videoId, { limit });
+
+    if (!videos) {
+      return res.status(404).json({ error: 'Видео не найдено' });
+    }
+
+    res.json(videos);
+  } catch (error) {
+    console.error('Related videos error:', error);
+    res.status(500).json({ error: 'Ошибка при подборе похожих видео' });
   }
 });
 
