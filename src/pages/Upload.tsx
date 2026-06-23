@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore.ts';
 import api, { uploadFile } from '../api/index.ts';
 import { Category } from '../types.ts';
 import { readVideoDuration } from '../utils.ts';
+import HashtagInput from '../components/HashtagInput.tsx';
 
 export default function Upload() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Upload() {
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [duration, setDuration] = useState('0:00');
+  const [hashtagsInput, setHashtagsInput] = useState('');
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -103,6 +105,7 @@ export default function Upload() {
           thumbnailUrl,
           categoryId: categoryId ? Number(categoryId) : undefined,
           duration: duration.trim() || '0:00',
+          hashtags: hashtagsInput,
         });
       } else {
         await api.post('/api/shorts', {
@@ -185,6 +188,14 @@ export default function Upload() {
             className="w-full p-2.5 text-xs border border-[var(--yt-border)] rounded-[1px] yt-input resize-none"
           />
         </div>
+
+        {contentType === 'video' && (
+          <HashtagInput
+            value={hashtagsInput}
+            onChange={setHashtagsInput}
+            label="Хэштеги видео"
+          />
+        )}
 
         <div>
           <label className="block text-xs font-bold yt-text-primary mb-1">Видеофайл *</label>

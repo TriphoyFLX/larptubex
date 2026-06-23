@@ -36,6 +36,7 @@ model User {
   
   playlists     Playlist[]
   viewHistory   ViewHistory[]
+  hashtags      UserHashtag[]
 
   @@map("users")
 }
@@ -68,6 +69,7 @@ model Video {
   playlistVideos PlaylistVideo[]
   viewHistory  ViewHistory[]
   notifications RecipientNotifications[]
+  hashtags     VideoHashtag[]
 
   @@map("videos")
 }
@@ -247,4 +249,37 @@ model ShortViewHistory {
   @@unique([sessionId, shortId])
   @@index([userId, updatedAt])
   @@map("short_view_history")
+}
+
+model Hashtag {
+  id        Int            @id @default(autoincrement())
+  name      String         @unique
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  videos    VideoHashtag[]
+  users     UserHashtag[]
+
+  @@map("hashtags")
+}
+
+model VideoHashtag {
+  videoId   Int      @map("video_id")
+  hashtagId Int      @map("hashtag_id")
+
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  hashtag   Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@id([videoId, hashtagId])
+  @@map("video_hashtags")
+}
+
+model UserHashtag {
+  userId    Int      @map("user_id")
+  hashtagId Int      @map("hashtag_id")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hashtag   Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@id([userId, hashtagId])
+  @@map("user_hashtags")
 }

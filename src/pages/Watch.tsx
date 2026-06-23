@@ -19,6 +19,7 @@ import { useWatchProgress } from '../hooks/useWatchProgress.ts';
 import VideoPlayer from '../components/VideoPlayer.tsx';
 import SuggestedVideos from '../components/SuggestedVideos.tsx';
 import WatchMobileSheet from '../components/WatchMobileSheet.tsx';
+import HashtagList from '../components/HashtagList.tsx';
 
 export default function Watch() {
   const { id } = useParams();
@@ -56,9 +57,10 @@ export default function Watch() {
     setLoading(true);
     try {
       const videoRes = await api.get(`/api/videos/${id}`);
-      const { video: videoData, likesCount, dislikesCount, isLiked, isDisliked, isSubscribed, subscribersCount, watchProgress } = videoRes.data;
+      const { video: videoData, hashtags, likesCount, dislikesCount, isLiked, isDisliked, isSubscribed, subscribersCount, watchProgress } = videoRes.data;
       setVideo({
         ...videoData,
+        hashtags: hashtags || [],
         likesCount,
         dislikesCount,
         viewerRating: isLiked ? 'like' : isDisliked ? 'dislike' : null,
@@ -306,6 +308,9 @@ export default function Watch() {
         >
           {showFullDesc ? (<>Свернуть <ChevronUp size={14} /></>) : (<>Развернуть <ChevronDown size={14} /></>)}
         </button>
+        {video.hashtags && video.hashtags.length > 0 && (
+          <HashtagList tags={video.hashtags} className="mt-3" />
+        )}
       </div>
     </>
   );

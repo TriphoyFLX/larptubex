@@ -9,6 +9,7 @@ export interface User {
   bio: string | null;
   isAdmin: boolean;
   createdAt: string;
+  hashtags?: string[];
 }
 
 export interface Category {
@@ -36,6 +37,7 @@ export interface Video {
   viewerRating?: 'like' | 'dislike' | null;
   isSubscribed?: boolean;
   watchProgress?: WatchProgress | null;
+  hashtags?: string[];
 }
 
 export interface Short {

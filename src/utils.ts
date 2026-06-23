@@ -81,6 +81,23 @@ export function isSameUser(
   return Number(a) === Number(b);
 }
 
+/** Client-side preview of hashtag input (server validates on save). */
+export function parseHashtagPreview(input: string): string[] {
+  const parts = input.split(/[\s,;]+/);
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const part of parts) {
+    const name = part.trim().toLowerCase().replace(/^#+/, '');
+    if (name.length < 2 || name.length > 32) continue;
+    if (!/^[a-z0-9_\u0400-\u04ff]+$/i.test(name)) continue;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    result.push(name);
+    if (result.length >= 12) break;
+  }
+  return result;
+}
+
 const VIEW_SESSION_KEY = 'larptubex_view_session';
 
 export function getViewSessionId(): string {

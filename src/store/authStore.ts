@@ -15,7 +15,7 @@ interface AuthState {
   // Universal actions
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
-  updateProfile: (payload: Partial<Pick<User, 'displayName' | 'handle' | 'avatar' | 'banner' | 'bio'>>) => Promise<User>;
+  updateProfile: (payload: Partial<Pick<User, 'displayName' | 'handle' | 'avatar' | 'banner' | 'bio' | 'hashtags'>> & { hashtags?: string[] | string }) => Promise<User>;
   initialize: () => Promise<void>;
 }
 

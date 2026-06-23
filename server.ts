@@ -42,6 +42,14 @@ import {
   createRateLimiter,
 } from './src/server/security.ts';
 import { canSubscribeToChannel, validChannelSubscriptionsWhere } from './src/server/social.ts';
+import {
+  parseHashtagInput,
+  syncVideoHashtags,
+  syncUserHashtags,
+  getVideoHashtagNames,
+  getUserHashtagNames,
+  normalizeHashtag,
+} from './src/server/hashtags.ts';
 
 const app = express();
 const PORT = 3000;
@@ -578,6 +586,7 @@ app.get('/api/videos/:id', optionalAuth, async (req: AuthRequest, res) => {
 
     res.json({
       video: currentVideo,
+      hashtags: await getVideoHashtagNames(videoId),
       likesCount,
       dislikesCount,
       commentsCount,
@@ -595,7 +604,7 @@ app.get('/api/videos/:id', optionalAuth, async (req: AuthRequest, res) => {
 
 // Create video
 app.post('/api/videos', requireAuth, async (req: AuthRequest, res) => {
-  const { title, description, videoUrl, thumbnailUrl, categoryId, duration } = req.body;
+  const { title, description, videoUrl, thumbnailUrl, categoryId, duration, hashtags } = req.body;
   if (!title || !videoUrl) {
     return res.status(400).json({ error: 'Введите название и видеофайл' });
   }
@@ -612,6 +621,8 @@ app.post('/api/videos', requireAuth, async (req: AuthRequest, res) => {
         authorId: req.user!.id,
       }
     });
+
+    await syncVideoHashtags(inserted.id, parseHashtagInput(hashtags));
 
     // Notify all subscribers of the uploader
     const subs = await prisma.subscription.findMany({
@@ -631,7 +642,10 @@ app.post('/api/videos', requireAuth, async (req: AuthRequest, res) => {
       });
     }
 
-    res.status(201).json(inserted);
+    res.status(201).json({
+      ...inserted,
+      hashtags: await getVideoHashtagNames(inserted.id),
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Ошибка загрузки видео' });
@@ -640,7 +654,7 @@ app.post('/api/videos', requireAuth, async (req: AuthRequest, res) => {
 
 app.put('/api/videos/:id', requireAuth, async (req: AuthRequest, res) => {
   const videoId = Number(req.params.id);
-  const { title, description, categoryId } = req.body;
+  const { title, description, categoryId, hashtags } = req.body;
 
   try {
     const existing = await prisma.video.findUnique({
@@ -661,7 +675,14 @@ app.put('/api/videos/:id', requireAuth, async (req: AuthRequest, res) => {
       }
     });
 
-    res.json(updated);
+    if (hashtags !== undefined) {
+      await syncVideoHashtags(videoId, parseHashtagInput(hashtags));
+    }
+
+    res.json({
+      ...updated,
+      hashtags: await getVideoHashtagNames(videoId),
+    });
   } catch (e) {
     res.status(500).json({ error: 'Ошибка обновления метаданных видео' });
   }
@@ -1318,6 +1339,7 @@ app.get('/api/channels/:id', async (req, res) => {
       videosCount,
       totalViews,
       isSubscribed,
+      hashtags: await getUserHashtagNames(authorId),
     });
   } catch (error) {
     res.status(500).json({ error: 'Error loading channel metadata' });
@@ -1512,7 +1534,10 @@ app.get('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
     }));
 
     res.json({
-      user: sanitizeUser(userDetail),
+      user: {
+        ...sanitizeUser(userDetail),
+        hashtags: await getUserHashtagNames(userDetail.id),
+      },
       history: parsedHistory,
       subscriptions: parsedChannels,
     });
@@ -1522,7 +1547,7 @@ app.get('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
 });
 
 app.put('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
-  const { displayName, avatar, banner, handle, bio } = req.body;
+  const { displayName, avatar, banner, handle, bio, hashtags } = req.body;
   try {
     const { errors, result } = validateProfilePayload({ displayName, handle, bio });
     if (errors.length > 0) {
@@ -1551,7 +1576,15 @@ app.put('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
         bio: result.bio !== undefined ? result.bio : req.user!.bio,
       },
     });
-    res.json(sanitizeUser(updated));
+
+    if (hashtags !== undefined) {
+      await syncUserHashtags(req.user!.id, parseHashtagInput(hashtags));
+    }
+
+    res.json({
+      ...sanitizeUser(updated),
+      hashtags: await getUserHashtagNames(req.user!.id),
+    });
   } catch (error) {
     console.error('Profile update error:', error);
     res.status(500).json({ error: 'Ошибка обновления профиля' });
@@ -1619,6 +1652,54 @@ app.get('/api/search', async (req, res) => {
   if (!query) return res.json({ videos: [], channels: [], shorts: [], posts: [] });
 
   try {
+    const tagSlug = query.startsWith('#') ? normalizeHashtag(query) : null;
+
+    if (tagSlug) {
+      const tag = await prisma.hashtag.findUnique({ where: { name: tagSlug } });
+      if (!tag) {
+        return res.json({ videos: [], channels: [], shorts: [], posts: [], hashtag: tagSlug });
+      }
+
+      const videoLinks = await prisma.videoHashtag.findMany({
+        where: { hashtagId: tag.id },
+        include: { video: { include: { author: true } } },
+        take: 20,
+      });
+      const channelLinks = await prisma.userHashtag.findMany({
+        where: { hashtagId: tag.id },
+        take: 10,
+      });
+      const channelUsers = channelLinks.length
+        ? await prisma.user.findMany({ where: { id: { in: channelLinks.map((c) => c.userId) } } })
+        : [];
+
+      return res.json({
+        hashtag: tagSlug,
+        videos: videoLinks
+          .filter((v) => v.video)
+          .map((v) => ({
+            id: v.video.id,
+            title: v.video.title,
+            description: v.video.description,
+            thumbnailUrl: v.video.thumbnailUrl,
+            views: v.video.views,
+            duration: v.video.duration,
+            createdAt: v.video.createdAt,
+            authorName: v.video.author.displayName,
+            hashtags: [tagSlug],
+          })),
+        channels: channelUsers.map((u) => ({
+          id: u.id,
+          displayName: u.displayName,
+          avatar: u.avatar,
+          bio: u.bio,
+          hashtags: [tagSlug],
+        })),
+        shorts: [],
+        posts: [],
+      });
+    }
+
     // 1. Search Videos
     const matchesVideos = await prisma.video.findMany({
       where: {

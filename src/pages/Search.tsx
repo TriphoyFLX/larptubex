@@ -11,6 +11,7 @@ interface SearchResults {
   channels: any[];
   shorts: Short[];
   posts: CommunityPost[];
+  hashtag?: string;
 }
 
 export default function Search() {
@@ -52,7 +53,11 @@ export default function Search() {
       <div className="yt-border-b pb-3 mb-6">
         <h2 className="font-sans font-bold text-sm yt-text-primary uppercase tracking-wider flex items-center gap-2">
           <SearchIcon size={14} className="yt-text-secondary" />
-          Результаты поиска по запросу: <span className="text-yt-red italic">"{query}"</span>
+          {results.hashtag ? (
+            <>Хэштег: <span className="text-yt-red italic">#{results.hashtag}</span></>
+          ) : (
+            <>Результаты поиска по запросу: <span className="text-yt-red italic">"{query}"</span></>
+          )}
         </h2>
         <span className="text-[10px] yt-text-muted font-semibold block mt-1">Найдено совпадений: {totalResults}</span>
       </div>

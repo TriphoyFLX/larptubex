@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore.ts';
 import api, { uploadFile } from '../api/index.ts';
 import { Video, Short, CommunityPost, Playlist } from '../types.ts';
 import { formatViews, formatRelativeDate, DEFAULT_AVATAR, formatChannelHandle, isSameUser } from '../utils.ts';
+import HashtagList from '../components/HashtagList.tsx';
 import { setPageMeta } from '../seo.ts';
 
 export default function Channel() {
@@ -182,6 +183,9 @@ export default function Channel() {
                 {formatChannelHandle(channelData)} • {channelData.subscribersCount} подписчиков • {videos.length} видео
               </p>
               <p className="text-xs yt-text-secondary mt-1 line-clamp-2 max-w-lg">{channelData.bio || 'У этого автора пока нет описания канала.'}</p>
+              {channelData.hashtags?.length > 0 && (
+                <HashtagList tags={channelData.hashtags} className="mt-2" />
+              )}
             </div>
           </div>
 
@@ -417,6 +421,12 @@ export default function Channel() {
               <p className="text-xs yt-text-primary leading-relaxed whitespace-pre-wrap yt-desc-box p-4 italic">
                 {channelData.bio || 'Этот канал не указал детальной автобиографии.'}
               </p>
+              {channelData.hashtags?.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-[10px] font-bold yt-text-secondary uppercase tracking-wider mb-2">Хэштеги канала</h4>
+                  <HashtagList tags={channelData.hashtags} size="md" />
+                </div>
+              )}
             </div>
             <div className="md:col-span-1 space-y-4 border-l border-[var(--yt-border)] pl-6 h-full font-sans">
               <h3 className="text-xs font-bold yt-text-primary yt-border-b pb-1.5 uppercase tracking-wider">Статистика</h3>
