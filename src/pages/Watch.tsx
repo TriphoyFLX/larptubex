@@ -209,14 +209,14 @@ export default function Watch() {
 
   if (loading) {
     return (
-      <div className="flex-1 bg-white p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="flex-1 yt-page p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-black aspect-video w-full animate-pulse"></div>
-          <div className="h-6 bg-gray-200 w-3/4 animate-pulse"></div>
-          <div className="h-10 bg-gray-100 w-full animate-pulse"></div>
+          <div className="yt-player-bg aspect-video w-full animate-pulse"></div>
+          <div className="h-6 yt-skeleton w-3/4 animate-pulse"></div>
+          <div className="h-10 yt-skeleton w-full animate-pulse"></div>
         </div>
         <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-24 bg-gray-100 w-full animate-pulse"></div>)}
+          {[1,2,3].map(i => <div key={i} className="h-24 yt-skeleton w-full animate-pulse"></div>)}
         </div>
       </div>
     );
@@ -224,18 +224,18 @@ export default function Watch() {
 
   if (!video) {
     return (
-      <div className="flex-1 bg-white p-12 text-center text-gray-500 font-semibold text-sm">
+      <div className="flex-1 yt-page p-12 text-center yt-text-secondary font-semibold text-sm">
         Упс! Данного видео не существует или оно было удалено модератором.
       </div>
     );
   }
 
   return (
-    <div className="flex-1 bg-white p-6 grid grid-cols-1 lg:grid-cols-3 gap-6" id="watch-layout">
+    <div className="flex-1 yt-page p-6 grid grid-cols-1 lg:grid-cols-3 gap-6" id="watch-layout">
       {/* Main column: player, info, comments */}
       <div className="lg:col-span-2" id="v-player-container-block">
         {/* HTML5 video player styled like classic black screen */}
-        <div className="bg-black aspect-video w-full relative border border-gray-300" id="video-frame">
+        <div className="yt-player-bg aspect-video w-full relative border border-[var(--yt-border)]" id="video-frame">
           <video
             ref={videoRef}
             src={video.videoUrl}
@@ -271,15 +271,15 @@ export default function Watch() {
         </div>
 
         {/* Video Title */}
-        <h1 className="font-sans font-bold text-base text-gray-950 mt-4 leading-normal" id="video-detail-title">
+        <h1 className="font-sans font-bold text-base yt-text-primary mt-4 leading-normal" id="video-detail-title">
           {video.title}
         </h1>
 
         {/* Metrics, author & action panels */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-3.5 mt-2 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between yt-border-b pb-3.5 mt-2 gap-4">
           {/* Author Block */}
           <div className="flex items-center gap-3">
-            <Link to={`/channel/${video.authorId}`} className="shrink-0 h-11 w-11 rounded-full overflow-hidden border border-gray-200">
+            <Link to={`/channel/${video.authorId}`} className="shrink-0 h-11 w-11 rounded-full overflow-hidden border border-[var(--yt-border)]">
               <img
                 src={video.authorAvatar || DEFAULT_AVATAR}
                 alt={video.authorName}
@@ -287,17 +287,17 @@ export default function Watch() {
               />
             </Link>
             <div className="min-w-0">
-              <Link to={`/channel/${video.authorId}`} className="block font-bold text-xs text-gray-900 leading-snug hover:text-blue-600">
+              <Link to={`/channel/${video.authorId}`} className="block font-bold text-xs yt-text-primary leading-snug hover:text-[#3ea6ff]">
                 {video.authorName}
               </Link>
-              <span className="text-[10px] text-gray-400 font-bold block">{video.subscribersCount || 0} подписчиков</span>
+              <span className="text-[10px] yt-text-muted font-bold block">{video.subscribersCount || 0} подписчиков</span>
             </div>
 
             {/* Subscribe Toggle Button */}
             {user?.id !== video.authorId && (
               <button
                 onClick={handleSubscribe}
-                className={`ml-3 px-3 py-1.5 rounded-[1px] font-bold text-xs uppercase tracking-tight transition-all py-1.5 ${video.isSubscribed ? 'bg-gray-100 border border-gray-300 text-gray-600 hover:bg-gray-200' : 'bg-yt-red border border-yt-darkred text-white hover:bg-yt-darkred'}`}
+                className={`ml-3 px-3 py-1.5 rounded-[1px] font-bold text-xs uppercase tracking-tight transition-all py-1.5 ${video.isSubscribed ? 'bg-[var(--yt-bg-hover)] border border-[var(--yt-border)] yt-text-secondary yt-hover' : 'bg-yt-red border border-yt-darkred text-white hover:bg-yt-darkred'}`}
                 id="btn-subscribe-toggle"
               >
                 {video.isSubscribed ? (
@@ -313,15 +313,15 @@ export default function Watch() {
 
           {/* Views count + Like/Dislike Ratings Widgets */}
           <div className="flex items-center gap-4">
-            <div className="text-[11px] text-gray-500 font-semibold uppercase shrink-0">
-              <span className="font-bold text-sm text-gray-800">{video.views.toLocaleString()}</span> просмотров
+            <div className="text-[11px] yt-text-secondary font-semibold uppercase shrink-0">
+              <span className="font-bold text-sm yt-text-primary">{video.views.toLocaleString()}</span> просмотров
             </div>
 
-            <div className="flex items-center border border-gray-300 rounded-[2px] bg-[#f8f8f8] h-7 pt-0.5" id="ratings-cluster">
+            <div className="flex items-center border border-[var(--yt-border)] rounded-[2px] bg-[var(--yt-bg-hover)] h-7 pt-0.5" id="ratings-cluster">
               {/* Like Button */}
               <button
                 onClick={handleLike}
-                className={`px-3 py-1 hover:bg-gray-200 flex items-center gap-1.5 transition-colors border-r border-gray-300 ${video.viewerRating === 'like' ? 'text-blue-600 bg-blue-50/20 font-bold' : 'text-gray-600'}`}
+                className={`px-3 py-1 yt-hover flex items-center gap-1.5 transition-colors border-r border-[var(--yt-border)] ${video.viewerRating === 'like' ? 'text-[#3ea6ff] font-bold' : 'yt-text-secondary'}`}
                 id="btn-like-interaction"
               >
                 <ThumbsUp size={11} className="stroke-[3]" />
@@ -330,7 +330,7 @@ export default function Watch() {
               {/* Dislike Button */}
               <button
                 onClick={handleDislike}
-                className={`px-3 py-1 hover:bg-gray-200 flex items-center gap-1.5 transition-colors ${video.viewerRating === 'dislike' ? 'text-red-600 bg-red-50/20 font-bold' : 'text-gray-600'}`}
+                className={`px-3 py-1 yt-hover flex items-center gap-1.5 transition-colors ${video.viewerRating === 'dislike' ? 'text-red-600 font-bold' : 'yt-text-secondary'}`}
                 id="btn-dislike-interaction"
               >
                 <ThumbsDown size={11} className="stroke-[3]" />
@@ -341,9 +341,9 @@ export default function Watch() {
         </div>
 
         {/* Video Description box */}
-        <div className="bg-[#f2f2f2] border border-gray-200 p-3 mt-4 text-xs text-gray-800 leading-relaxed rounded-sm rounded-t-none" id="v-description-wrapper">
-          <div className="flex items-center gap-2 mb-1.5 border-b border-gray-300 pb-1.5">
-            <span className="font-bold text-gray-900">Опубликовано:</span>
+        <div className="yt-desc-box p-3 mt-4 text-xs yt-text-primary leading-relaxed rounded-sm rounded-t-none" id="v-description-wrapper">
+          <div className="flex items-center gap-2 mb-1.5 border-b border-[var(--yt-border)] pb-1.5">
+            <span className="font-bold yt-text-primary">Опубликовано:</span>
             <span>{new Date(video.createdAt).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
           </div>
           <p className={`${showFullDesc ? '' : 'line-clamp-3'} whitespace-pre-wrap`}>
@@ -351,7 +351,7 @@ export default function Watch() {
           </p>
           <button
             onClick={() => setShowFullDesc(!showFullDesc)}
-            className="mt-2 text-blue-600 font-bold hover:underline block text-[10px] uppercase flex items-center gap-0.5"
+            className="mt-2 text-[#3ea6ff] font-bold hover:underline block text-[10px] uppercase flex items-center gap-0.5"
             id="desc-see-more-toggle"
           >
             {showFullDesc ? (
@@ -364,8 +364,8 @@ export default function Watch() {
 
         {/* --- Comments architecture --- */}
         <div className="mt-8" id="video-comments-block">
-          <h3 className="font-sans font-bold text-xs text-gray-900 border-b border-gray-200 pb-2 flex items-center gap-2 uppercase tracking-wide">
-            <MessageSquare size={13} className="text-gray-500" />
+          <h3 className="font-sans font-bold text-xs yt-text-primary yt-border-b pb-2 flex items-center gap-2 uppercase tracking-wide">
+            <MessageSquare size={13} className="yt-text-secondary" />
             Отзывы и комментарии ({comments.length})
           </h3>
 
@@ -374,7 +374,7 @@ export default function Watch() {
             <form onSubmit={handleAddComment} className="flex gap-3 mt-4" id="comment-add-box">
               <img
                 src={user.avatar || DEFAULT_AVATAR}
-                className="w-8 h-8 rounded-full border border-gray-200 object-cover"
+                className="w-8 h-8 rounded-full border border-[var(--yt-border)] object-cover"
                 alt="my avatar"
               />
               <div className="flex-1 flex flex-col gap-2">
@@ -383,7 +383,7 @@ export default function Watch() {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   rows={2}
-                  className="w-full p-2 text-sm border border-gray-300 rounded-[1px] resize-none"
+                  className="w-full p-2 text-sm border border-[var(--yt-border)] rounded-[1px] resize-none yt-input"
                   required
                 />
                 <button type="submit" className="self-end bg-yt-red text-white py-1 px-3 text-xs font-bold uppercase hover:bg-yt-darkred border border-yt-darkred rounded-[1px]">
@@ -392,9 +392,9 @@ export default function Watch() {
               </div>
             </form>
           ) : (
-            <div className="bg-gray-50 border border-gray-200 p-4 text-center text-xs mt-4 rounded-sm">
+            <div className="yt-surface border border-[var(--yt-border)] p-4 text-center text-xs mt-4 rounded-sm">
               Пожалуйста,{' '}
-              <Link to="/login" className="text-blue-600 underline font-bold">
+              <Link to="/login" className="text-[#3ea6ff] underline font-bold">
                 авторизуйтесь в системе
               </Link>
               , чтобы оставлять свои комментарии и отзывы.
@@ -404,20 +404,20 @@ export default function Watch() {
           {/* Comments list threads */}
           <div className="mt-6 space-y-6" id="comments-timeline">
             {comments.map((comment) => (
-              <div key={comment.id} className="group border-b border-gray-50 pb-4 last:border-0" id={`comment-row-${comment.id}`}>
+              <div key={comment.id} className="group yt-border-b pb-4 last:border-0" id={`comment-row-${comment.id}`}>
                 {/* Main Root comment */}
                 <div className="flex gap-3">
                   <img
                     src={comment.authorAvatar || DEFAULT_AVATAR}
-                    className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                    className="w-8 h-8 rounded-full object-cover border border-[var(--yt-border)]"
                     alt="Comment author"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs text-gray-900">{comment.authorName}</span>
-                      <span className="text-[9px] text-gray-400 font-medium">{formatRelativeDate(comment.createdAt)}</span>
+                      <span className="font-bold text-xs yt-text-primary">{comment.authorName}</span>
+                      <span className="text-[9px] yt-text-muted font-medium">{formatRelativeDate(comment.createdAt)}</span>
                     </div>
-                    <p className="text-xs text-gray-700 mt-1 leading-relaxed bg-white">{comment.content}</p>
+                    <p className="text-xs yt-text-primary mt-1 leading-relaxed">{comment.content}</p>
                     
                     {/* Actions: Replay, delete triggers */}
                     <div className="flex items-center gap-3 mt-1.5">
@@ -426,7 +426,7 @@ export default function Watch() {
                           setReplyToId(replyToId === comment.id ? null : comment.id);
                           setReplyText('');
                         }}
-                        className="text-[10px] text-blue-600 font-bold hover:underline uppercase"
+                        className="text-[10px] text-[#3ea6ff] font-bold hover:underline uppercase"
                       >
                         Ответить
                       </button>
@@ -444,23 +444,23 @@ export default function Watch() {
 
                 {/* Sub replies list */}
                 {comment.replies && comment.replies.length > 0 && (
-                  <div className="ml-10 mt-3 space-y-3 bg-gray-50/50 p-2.5 border-l-2 border-gray-200 rounded-sm">
+                  <div className="ml-10 mt-3 space-y-3 bg-[var(--yt-bg-hover)] p-2.5 border-l-2 border-[var(--yt-border)] rounded-sm">
                     {comment.replies.map((reply) => (
                       <div key={reply.id} className="flex gap-2.5" id={`reply-row-${reply.id}`}>
-                        <div className="text-gray-400 mt-1 shrink-0">
+                        <div className="yt-text-muted mt-1 shrink-0">
                           <CornerDownRight size={12} />
                         </div>
                         <img
                           src={reply.authorAvatar || DEFAULT_AVATAR}
-                          className="w-6 h-6 rounded-full object-cover border border-gray-200"
+                          className="w-6 h-6 rounded-full object-cover border border-[var(--yt-border)]"
                           alt="reply author"
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-[11px] text-gray-900">{reply.authorName}</span>
-                            <span className="text-[9px] text-gray-400">{formatRelativeDate(reply.createdAt)}</span>
+                            <span className="font-bold text-[11px] yt-text-primary">{reply.authorName}</span>
+                            <span className="text-[9px] yt-text-muted">{formatRelativeDate(reply.createdAt)}</span>
                           </div>
-                          <p className="text-xs text-gray-700 mt-0.5 leading-snug">{reply.content}</p>
+                          <p className="text-xs yt-text-primary mt-0.5 leading-snug">{reply.content}</p>
                           {(user && (user.id === reply.authorId || user.isAdmin)) && (
                             <button
                               onClick={() => handleDeleteComment(reply.id, comment.id)}
@@ -483,7 +483,7 @@ export default function Watch() {
                       placeholder="Напишите ответ..."
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
-                      className="flex-1 px-2.5 py-1 border border-gray-300 rounded-[1px] text-xs bg-white h-7 focus:border-blue-500"
+                      className="flex-1 px-2.5 py-1 border border-[var(--yt-border)] rounded-[1px] text-xs yt-input h-7"
                       required
                     />
                     <button
@@ -502,16 +502,16 @@ export default function Watch() {
 
       {/* Suggested / Sidebar videos container */}
       <div className="lg:col-span-1" id="suggestions-column">
-        <h3 className="font-sans font-bold text-xs text-gray-900 border-b border-gray-200 pb-2 uppercase tracking-wide flex items-center gap-1.5 col-span-1">
+        <h3 className="font-sans font-bold text-xs yt-text-primary yt-border-b pb-2 uppercase tracking-wide flex items-center gap-1.5 col-span-1">
           <Play size={11} className="text-yt-red fill-yt-red" />
           Похожие видео
         </h3>
 
         <div className="flex flex-col gap-3 mt-4" id="suggestions-list">
           {suggestedVideos.map((s) => (
-            <Link key={s.id} to={`/watch/${s.id}`} className="group flex gap-2.5 border-b border-gray-50 pb-2 select-all h-20 overflow-hidden" id={`suggest-video-${s.id}`}>
+            <Link key={s.id} to={`/watch/${s.id}`} className="group flex gap-2.5 yt-border-b pb-2 select-all h-20 overflow-hidden" id={`suggest-video-${s.id}`}>
               {/* Thumbnail representation */}
-              <div className="relative w-32 shrink-0 aspect-video overflow-hidden border border-gray-200 bg-black">
+              <div className="relative w-32 shrink-0 aspect-video overflow-hidden border border-[var(--yt-border)] bg-black">
                 <img
                   src={s.thumbnailUrl}
                   alt={s.title}
@@ -523,11 +523,11 @@ export default function Watch() {
               </div>
               {/* Info description */}
               <div className="flex-1 min-w-0">
-                <h4 className="font-sans font-bold text-[11px] text-gray-950 leading-tight line-clamp-2 hover:text-blue-600 transition-colors uppercase-none">
+                <h4 className="font-sans font-bold text-[11px] yt-text-primary leading-tight line-clamp-2 hover:text-[#3ea6ff] transition-colors uppercase-none">
                   {s.title}
                 </h4>
-                <p className="text-[10px] text-gray-500 font-semibold mt-1 truncate">{s.authorName}</p>
-                <span className="text-[9px] text-gray-400 block mt-0.5">{formatViews(s.views)}</span>
+                <p className="text-[10px] yt-text-secondary font-semibold mt-1 truncate">{s.authorName}</p>
+                <span className="text-[9px] yt-text-muted block mt-0.5">{formatViews(s.views)}</span>
               </div>
             </Link>
           ))}

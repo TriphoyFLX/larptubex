@@ -69,28 +69,28 @@ export default function Community() {
   };
 
   return (
-    <div className="flex-1 bg-white p-6 max-w-3xl mx-auto" id="community-tab">
-      <div className="border-b border-gray-200 pb-3 mb-6">
-        <h1 className="font-sans font-bold text-base text-gray-950 uppercase tracking-wide flex items-center gap-2">
+    <div className="flex-1 yt-page p-6 max-w-3xl mx-auto" id="community-tab">
+      <div className="yt-border-b pb-3 mb-6">
+        <h1 className="font-sans font-bold text-base yt-text-primary uppercase tracking-wide flex items-center gap-2">
           <MessageSquare size={16} className="text-yt-red" />
           Сообщество LarpTubeX
         </h1>
-        <p className="text-xs text-gray-400 mt-1">Официальные посты от авторов каналов, блоги, новости и живые обсуждения.</p>
+        <p className="text-xs yt-text-muted mt-1">Официальные посты от авторов каналов, блоги, новости и живые обсуждения.</p>
       </div>
 
       {user ? (
         /* Form */
-        <form onSubmit={handleCreatePost} className="bg-[#fcfcfc] border border-gray-300 p-5 rounded-sm space-y-4 mb-8 yt-card" id="global-community-post-creator">
-          <div className="flex items-center gap-2.5 border-b pb-2 border-gray-100">
-            <img src={user.avatar || DEFAULT_AVATAR} className="w-6 h-6 rounded-full border" alt="author avatar" />
-            <span className="font-bold text-xs text-gray-700">Опубликовать запись от имени {user.displayName}</span>
+        <form onSubmit={handleCreatePost} className="yt-surface border border-[var(--yt-border)] p-5 rounded-sm space-y-4 mb-8 yt-card" id="global-community-post-creator">
+          <div className="flex items-center gap-2.5 yt-border-b pb-2">
+            <img src={user.avatar || DEFAULT_AVATAR} className="w-6 h-6 rounded-full border border-[var(--yt-border)]" alt="author avatar" />
+            <span className="font-bold text-xs yt-text-primary">Опубликовать запись от имени {user.displayName}</span>
           </div>
           <textarea
             placeholder="Поделитесь с сообществом чем-то интересным..."
             value={newContent}
             onChange={(e) => setNewContent(e.target.value)}
             rows={3}
-            className="w-full text-xs p-2.5 border border-gray-300 rounded bg-white"
+            className="w-full text-xs p-2.5 border border-[var(--yt-border)] rounded yt-input"
             required
           />
           <input
@@ -107,50 +107,50 @@ export default function Community() {
             className="w-full text-xs"
           />
           {imagePreview && (
-            <img src={imagePreview} alt="Preview" className="max-h-40 border object-cover" />
+            <img src={imagePreview} alt="Preview" className="max-h-40 border border-[var(--yt-border)] object-cover" />
           )}
           <button type="submit" className="bg-yt-red border border-yt-darkred text-white py-1.5 px-4 text-xs font-bold hover:bg-yt-darkred rounded-[1px] select-none block ml-auto uppercase">
             Опубликовать
           </button>
         </form>
       ) : (
-        <div className="bg-gray-50 border border-gray-200 p-4 text-center text-xs mb-8 rounded">
-          <Link to="/login" className="text-blue-600 underline font-bold">Войдите</Link>, чтобы оставить свою запись в ленте сообщества.
+        <div className="yt-surface border border-[var(--yt-border)] p-4 text-center text-xs mb-8 rounded">
+          <Link to="/login" className="text-[#3ea6ff] underline font-bold">Войдите</Link>, чтобы оставить свою запись в ленте сообщества.
         </div>
       )}
 
       {loading ? (
         <div className="space-y-4">
           {[1, 2].map(i => (
-            <div key={i} className="animate-pulse bg-gray-50 border h-28 w-full p-4 space-y-2">
-              <div className="h-4 bg-gray-200 u-1/4 rounded"></div>
-              <div className="h-4 bg-gray-200 u-3/4 rounded"></div>
+            <div key={i} className="animate-pulse yt-surface border border-[var(--yt-border)] h-28 w-full p-4 space-y-2">
+              <div className="h-4 yt-skeleton w-1/4 rounded"></div>
+              <div className="h-4 yt-skeleton w-3/4 rounded"></div>
             </div>
           ))}
         </div>
       ) : posts.length === 0 ? (
-        <p className="text-center text-xs text-gray-400 py-20 italic">В ленте сообщества пока нет записей.</p>
+        <p className="text-center text-xs yt-text-muted py-20 italic">В ленте сообщества пока нет записей.</p>
       ) : (
         <div className="space-y-6" id="community-feed-list">
           {posts.map((post) => (
-            <div key={post.id} className="bg-white border border-gray-200 p-5 rounded-sm" id={`community-post-${post.id}`}>
+            <div key={post.id} className="yt-surface border border-[var(--yt-border)] p-5 rounded-sm" id={`community-post-${post.id}`}>
               <div className="flex gap-3 items-center">
-                <Link to={`/channel/${post.authorId}`} className="shrink-0 h-9 w-9 rounded-full overflow-hidden border border-gray-200">
+                <Link to={`/channel/${post.authorId}`} className="shrink-0 h-9 w-9 rounded-full overflow-hidden border border-[var(--yt-border)]">
                   <img src={post.authorAvatar || DEFAULT_AVATAR} className="w-full h-full object-cover" alt="Author" />
                 </Link>
                 <div>
-                  <Link to={`/channel/${post.authorId}`} className="font-bold text-xs text-gray-900 block hover:text-blue-600 leading-tight">{post.authorName}</Link>
-                  <span className="text-[10px] text-gray-400 font-medium">{formatRelativeDate(post.createdAt)}</span>
+                  <Link to={`/channel/${post.authorId}`} className="font-bold text-xs yt-text-primary block hover:text-[#3ea6ff] leading-tight">{post.authorName}</Link>
+                  <span className="text-[10px] yt-text-muted font-medium">{formatRelativeDate(post.createdAt)}</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-700 mt-4 leading-relaxed whitespace-pre-wrap">{post.content}</p>
+              <p className="text-xs yt-text-primary mt-4 leading-relaxed whitespace-pre-wrap">{post.content}</p>
               {post.imageUrl && (
-                <img src={post.imageUrl} className="mt-4 max-h-80 w-full object-cover border border-gray-200 rounded-sm" alt="Atachement Image" />
+                <img src={post.imageUrl} className="mt-4 max-h-80 w-full object-cover border border-[var(--yt-border)] rounded-sm" alt="Atachement Image" />
               )}
               {/* Interaction Block */}
-              <div className="flex gap-4 items-center mt-5 pt-3.5 border-t border-gray-100 text-[10px] text-gray-400 font-bold uppercase select-none">
-                <button onClick={() => handleLikePost(post.id)} className="flex items-center gap-1 group text-gray-500 hover:text-yt-red transition-colors">
-                  <Heart size={14} className="text-gray-400 group-hover:text-yt-red" />
+              <div className="flex gap-4 items-center mt-5 pt-3.5 yt-border-t text-[10px] yt-text-muted font-bold uppercase select-none">
+                <button onClick={() => handleLikePost(post.id)} className="flex items-center gap-1 group yt-text-secondary hover:text-yt-red transition-colors">
+                  <Heart size={14} className="yt-text-muted group-hover:text-yt-red" />
                   <span>Полезно ({post.likesCount})</span>
                 </button>
               </div>

@@ -30,15 +30,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-100px)] flex items-center justify-center p-4 bg-[#f1f1f1]" id="login-container">
-      <div className="w-full max-w-sm bg-white border border-gray-300 p-8 shadow-sm rounded-sm yt-card" id="login-box">
+    <div className="min-h-[calc(100vh-100px)] flex items-center justify-center p-4 yt-page" id="login-container">
+      <div className="w-full max-w-sm yt-surface border border-[var(--yt-border)] p-8 shadow-sm rounded-sm yt-card" id="login-box">
         {/* Header styling */}
         <div className="text-center mb-6">
           <div className="flex justify-center items-center gap-1 mb-2">
             <span className="bg-yt-red text-white font-bold text-lg px-2 rounded-sm tracking-tight">LARP</span>
             <span className="font-display font-bold text-2xl tracking-tight">Tube<span className="text-yt-red">X</span></span>
           </div>
-          <p className="text-xs text-gray-500">Авторизация в системе видеохостинга</p>
+          <p className="text-xs yt-text-secondary">Авторизация в системе видеохостинга</p>
         </div>
 
         {errorCode && (
@@ -50,14 +50,14 @@ export default function Login() {
 
         <form onSubmit={handleCredentialsSubmit} className="space-y-4" id="credentials-login-form">
           <div>
-            <label className="block text-xs font-bold text-gray-600 mb-1">Email адрес</label>
+            <label className="block text-xs font-bold yt-text-secondary mb-1">Email адрес</label>
             <div className="relative">
               <input
                 type="email"
                 placeholder="you@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-[1px] text-sm bg-gray-50/20"
+                className="w-full px-3 py-2 border border-[var(--yt-border)] rounded-[1px] text-sm yt-input"
                 required
               />
             </div>
@@ -65,7 +65,7 @@ export default function Login() {
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="block text-xs font-bold text-gray-600">Пароль</label>
+              <label className="block text-xs font-bold yt-text-secondary">Пароль</label>
             </div>
             <div className="relative">
               <input
@@ -73,7 +73,7 @@ export default function Login() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-[1px] text-sm bg-gray-50/20"
+                className="w-full px-3 py-2 border border-[var(--yt-border)] rounded-[1px] text-sm yt-input"
                 required
               />
             </div>
@@ -82,16 +82,16 @@ export default function Login() {
           <button
             type="submit"
             disabled={authProgress}
-            className="w-full bg-yt-red text-white font-bold py-2 px-4 rounded-[1px] text-xs uppercase hover:bg-yt-darkred transition-colors disabled:bg-gray-400 mt-2 flex items-center justify-center gap-1"
+            className="w-full bg-yt-red text-white font-bold py-2 px-4 rounded-[1px] text-xs uppercase hover:bg-yt-darkred transition-colors disabled:opacity-50 mt-2 flex items-center justify-center gap-1"
           >
             <LogIn size={13} />
             <span>{authProgress ? 'Загрузка...' : 'Авторизоваться'}</span>
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-gray-500">
+        <p className="mt-6 text-center text-xs yt-text-secondary">
           Впервые на платформе?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline font-bold">
+          <Link to="/register" className="text-[#3ea6ff] hover:underline font-bold">
             Регистрация канала
           </Link>
         </p>

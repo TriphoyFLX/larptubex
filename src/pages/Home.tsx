@@ -58,12 +58,12 @@ export default function Home() {
   };
 
   return (
-    <div className="flex-1 bg-white p-6" id="home-view">
+    <div className="flex-1 yt-page p-6" id="home-view">
       {/* Category Slider Rail */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-[#eee] uppercase text-[11px]" id="categories-tabs-rail">
+      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 yt-border-b uppercase text-[11px]" id="categories-tabs-rail">
         <button
           onClick={() => setActiveCategory(null)}
-          className={`px-3 py-1.5 font-bold rounded-sm transition-all border ${activeCategory === null ? 'bg-[#333] border-[#333] text-white' : 'bg-[#f8f8f8] hover:bg-[#efefef] border-[#ccc] text-[#333] shadow-sm'}`}
+          className={`px-3 py-1.5 font-bold rounded-sm transition-all border ${activeCategory === null ? 'yt-chip-active' : 'yt-chip yt-hover shadow-sm'}`}
         >
           Все видео
         </button>
@@ -71,7 +71,7 @@ export default function Home() {
           <button
             key={c.id}
             onClick={() => setActiveCategory(c.id)}
-            className={`px-3 py-1.5 font-bold rounded-sm transition-all border shrink-0 ${activeCategory === c.id ? 'bg-[#333] border-[#333] text-white' : 'bg-[#f8f8f8] hover:bg-[#efefef] border-[#ccc] text-[#333] shadow-sm'}`}
+            className={`px-3 py-1.5 font-bold rounded-sm transition-all border shrink-0 ${activeCategory === c.id ? 'yt-chip-active' : 'yt-chip yt-hover shadow-sm'}`}
           >
             {c.name}
           </button>
@@ -80,12 +80,12 @@ export default function Home() {
 
       {continueWatching.length > 0 && (
         <section className="mb-8" id="continue-watching-section">
-          <div className="flex items-center justify-between mb-4 border-b border-[#eee] pb-3">
-            <h2 className="text-base font-bold text-[#222] flex items-center gap-2">
+          <div className="flex items-center justify-between mb-4 yt-border-b pb-3">
+            <h2 className="text-base font-bold yt-text-primary flex items-center gap-2">
               <Clock size={16} className="text-yt-red" />
               Продолжить просмотр
             </h2>
-            <Link to="/history" className="text-[10px] font-bold text-blue-600 hover:underline uppercase">
+            <Link to="/history" className="text-[10px] font-bold text-[#3ea6ff] hover:underline uppercase">
               Вся история →
             </Link>
           </div>
@@ -96,7 +96,7 @@ export default function Home() {
                 to={`/watch/${entry.videoId}`}
                 className="group shrink-0 w-44"
               >
-                <div className="relative aspect-video bg-[#eee] border border-[#ddd] overflow-hidden">
+                <div className="relative aspect-video bg-black border border-[var(--yt-border)] overflow-hidden">
                   <img
                     src={entry.thumbnailUrl}
                     alt={entry.title}
@@ -117,7 +117,7 @@ export default function Home() {
                     <Play size={24} className="text-white fill-white" />
                   </div>
                 </div>
-                <h3 className="text-xs font-semibold text-[#333] mt-1.5 line-clamp-2 group-hover:text-blue-600">
+                <h3 className="text-xs font-semibold yt-text-primary mt-1.5 line-clamp-2 group-hover:text-[#3ea6ff]">
                   {entry.title}
                 </h3>
                 <p className="text-[10px] text-yt-red font-bold mt-0.5">
@@ -129,8 +129,8 @@ export default function Home() {
         </section>
       )}
 
-      <div className="flex justify-between items-center mb-5 border-b border-[#eee] pb-4">
-        <h2 className="text-lg font-medium text-[#222]" id="home-title-heading">
+      <div className="flex justify-between items-center mb-5 yt-border-b pb-4">
+        <h2 className="text-lg font-medium yt-text-primary" id="home-title-heading">
           Рекомендованные видео
         </h2>
       </div>
@@ -139,14 +139,14 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="skeleton-grid">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div key={i} className="animate-pulse space-y-2">
-              <div className="bg-[#eee] border border-[#ddd] h-36 w-full rounded-sm"></div>
-              <div className="h-4 bg-[#eee] rounded-sm w-3/4"></div>
-              <div className="h-3 bg-[#eee] rounded-sm w-1/2"></div>
+              <div className="yt-skeleton border border-[var(--yt-border)] h-36 w-full rounded-sm"></div>
+              <div className="h-4 yt-skeleton rounded-sm w-3/4"></div>
+              <div className="h-3 yt-skeleton rounded-sm w-1/2"></div>
             </div>
           ))}
         </div>
       ) : videos.length === 0 ? (
-        <div className="text-center py-20 text-gray-400 font-medium text-xs">
+        <div className="text-center py-20 yt-text-muted font-medium text-xs">
           В данной категории пока еще нет загруженных видео. Станьте первым автором!
         </div>
       ) : (
@@ -155,7 +155,7 @@ export default function Home() {
           {videos.map((video) => (
             <div key={video.id} className="flex flex-col gap-2 group cursor-pointer" id={`video-card-${video.id}`}>
               {/* Thumbnail Container */}
-              <Link to={`/watch/${video.id}`} className="relative aspect-video w-full bg-[#eee] border border-[#ddd]">
+              <Link to={`/watch/${video.id}`} className="relative aspect-video w-full bg-black border border-[var(--yt-border)]">
                 <img
                   src={video.thumbnailUrl}
                   alt={video.title}
@@ -171,17 +171,17 @@ export default function Home() {
               {/* Video Info metadata in Clean Minimalism */}
               <div className="flex flex-col">
                 <Link to={`/watch/${video.id}`} className="block">
-                  <h3 className="text-sm font-semibold leading-tight text-[#333] mb-1 line-clamp-2 hover:text-blue-600 transition-colors">
+                  <h3 className="text-sm font-semibold leading-tight yt-text-primary mb-1 line-clamp-2 hover:text-[#3ea6ff] transition-colors">
                     {video.title}
                   </h3>
                 </Link>
                 <div className="flex items-center gap-1">
-                  <Link to={`/channel/${video.authorId}`} className="text-xs text-[#767676] hover:text-[#333] cursor-pointer truncate font-medium">
+                  <Link to={`/channel/${video.authorId}`} className="text-xs yt-text-secondary hover:yt-text-primary cursor-pointer truncate font-medium">
                     {video.authorName}
                   </Link>
                 </div>
                 {/* View count & relative time */}
-                <p className="text-xs text-[#767676] mt-0.5">
+                <p className="text-xs yt-text-secondary mt-0.5">
                   {formatViews(video.views)} • {formatRelativeDate(video.createdAt)}
                 </p>
               </div>

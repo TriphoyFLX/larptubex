@@ -49,15 +49,15 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-100px)] flex items-center justify-center p-4 bg-[#f1f1f1]" id="register-container">
-      <div className="w-full max-w-md bg-white border border-gray-300 p-8 shadow-sm rounded-sm yt-card" id="register-box">
+    <div className="min-h-[calc(100vh-100px)] flex items-center justify-center p-4 yt-page" id="register-container">
+      <div className="w-full max-w-md yt-surface border border-[var(--yt-border)] p-8 shadow-sm rounded-sm yt-card" id="register-box">
         {/* Logo and Titles */}
         <div className="text-center mb-6">
           <div className="flex justify-center items-center gap-1 mb-2">
             <span className="bg-yt-red text-white font-bold text-lg px-2 rounded-sm tracking-tight">LARP</span>
             <span className="font-display font-bold text-2xl tracking-tight">Tube<span className="text-yt-red">X</span></span>
           </div>
-          <p className="text-xs text-gray-500">Регистрация нового видеоканала</p>
+          <p className="text-xs yt-text-secondary">Регистрация нового видеоканала</p>
         </div>
 
         {errorText && (
@@ -69,43 +69,43 @@ export default function Register() {
 
         <form onSubmit={handleRegisterSubmit} className="space-y-4" id="register-form">
           <div>
-            <label className="block text-xs font-bold text-gray-600 mb-1">Эл. почта *</label>
+            <label className="block text-xs font-bold yt-text-secondary mb-1">Эл. почта *</label>
             <input
               type="email"
               placeholder="chef@larptubex.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-[1px] text-sm bg-gray-50/20"
+              className="w-full px-3 py-2 border border-[var(--yt-border)] rounded-[1px] text-sm yt-input"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-600 mb-1">Название канала *</label>
+            <label className="block text-xs font-bold yt-text-secondary mb-1">Название канала *</label>
             <input
               type="text"
               placeholder="Кулинарный дневник"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-[1px] text-sm bg-gray-50/20"
+              className="w-full px-3 py-2 border border-[var(--yt-border)] rounded-[1px] text-sm yt-input"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-600 mb-1">Пароль канала *</label>
+            <label className="block text-xs font-bold yt-text-secondary mb-1">Пароль канала *</label>
             <input
               type="password"
               placeholder="Минимум 6 символов"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-[1px] text-sm bg-gray-50/20"
+              className="w-full px-3 py-2 border border-[var(--yt-border)] rounded-[1px] text-sm yt-input"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-600 mb-1">Аватар канала (опционально)</label>
+            <label className="block text-xs font-bold yt-text-secondary mb-1">Аватар канала (опционально)</label>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
@@ -120,25 +120,25 @@ export default function Register() {
               className="w-full text-xs"
             />
             {avatarPreview && (
-              <img src={avatarPreview} alt="Avatar preview" className="mt-2 w-16 h-16 rounded-full object-cover border" />
+              <img src={avatarPreview} alt="Avatar preview" className="mt-2 w-16 h-16 rounded-full object-cover border border-[var(--yt-border)]" />
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-600 mb-1">Описание канала (опционально)</label>
+            <label className="block text-xs font-bold yt-text-secondary mb-1">Описание канала (опционально)</label>
             <textarea
               placeholder="Расскажите о том, какой контент вы планируете публиковать на своем новом канале..."
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-[1px] text-sm bg-gray-50/20 resize-none"
+              className="w-full px-3 py-2 border border-[var(--yt-border)] rounded-[1px] text-sm yt-input resize-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-yt-red text-white font-bold py-2 px-4 rounded-[1px] text-xs uppercase hover:bg-yt-darkred transition-colors disabled:bg-gray-400 mt-2 flex items-center justify-center gap-1.5"
+            className="w-full bg-yt-red text-white font-bold py-2 px-4 rounded-[1px] text-xs uppercase hover:bg-yt-darkred transition-colors disabled:opacity-50 mt-2 flex items-center justify-center gap-1.5"
             id="btn-register-submit"
           >
             <Sparkles size={13} />
@@ -146,9 +146,9 @@ export default function Register() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-gray-500" id="login-redirect-link">
+        <p className="mt-6 text-center text-xs yt-text-secondary" id="login-redirect-link">
           Уже есть канал на LarpTubeX?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline font-bold">
+          <Link to="/login" className="text-[#3ea6ff] hover:underline font-bold">
             Войти в аккаунт
           </Link>
         </p>

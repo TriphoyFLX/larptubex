@@ -121,13 +121,13 @@ export default function Upload() {
   };
 
   return (
-    <div className="flex-1 bg-white p-6 max-w-3xl mx-auto" id="upload-panel">
-      <div className="border-b border-gray-200 pb-3 mb-6">
-        <h1 className="font-sans font-bold text-base text-gray-950 uppercase tracking-wide flex items-center gap-1.5">
+    <div className="flex-1 yt-page p-6 max-w-3xl mx-auto" id="upload-panel">
+      <div className="yt-border-b pb-3 mb-6">
+        <h1 className="font-sans font-bold text-base yt-text-primary uppercase tracking-wide flex items-center gap-1.5">
           <UploadIcon size={16} className="text-yt-red" />
           Загрузить контент на LarpTubeX
         </h1>
-        <p className="text-xs text-gray-400 mt-1">Загрузите видеофайл с компьютера — MP4, WebM или MOV до 500 МБ.</p>
+        <p className="text-xs yt-text-muted mt-1">Загрузите видеофайл с компьютера — MP4, WebM или MOV до 500 МБ.</p>
       </div>
 
       {errorMessage && (
@@ -143,11 +143,11 @@ export default function Upload() {
         </div>
       )}
 
-      <div className="flex gap-4 border-b border-gray-100 pb-4 mb-6 select-none">
+      <div className="flex gap-4 yt-border-b pb-4 mb-6 select-none">
         <button
           type="button"
           onClick={() => { setContentType('video'); setErrorMessage(''); }}
-          className={`px-4 py-2 text-xs font-bold border rounded-[1px] flex items-center gap-2 ${contentType === 'video' ? 'bg-[#333] border-[#333] text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200'}`}
+          className={`px-4 py-2 text-xs font-bold border rounded-[1px] flex items-center gap-2 ${contentType === 'video' ? 'yt-chip-active' : 'yt-chip yt-hover'}`}
         >
           <Film size={13} />
           <span>Стандартное видео</span>
@@ -155,7 +155,7 @@ export default function Upload() {
         <button
           type="button"
           onClick={() => { setContentType('short'); setErrorMessage(''); }}
-          className={`px-4 py-2 text-xs font-bold border rounded-[1px] flex items-center gap-2 ${contentType === 'short' ? 'bg-[#333] border-[#333] text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200'}`}
+          className={`px-4 py-2 text-xs font-bold border rounded-[1px] flex items-center gap-2 ${contentType === 'short' ? 'yt-chip-active' : 'yt-chip yt-hover'}`}
         >
           <Play size={13} className="fill-current" />
           <span>Короткий клип Shorts</span>
@@ -164,30 +164,30 @@ export default function Upload() {
 
       <form onSubmit={handleSubmit} className="space-y-4" id="upload-wizard-form">
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1">Название ролика *</label>
+          <label className="block text-xs font-bold yt-text-primary mb-1">Название ролика *</label>
           <input
             type="text"
             placeholder="Введите название..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border rounded-[1px]"
+            className="w-full px-3 py-2 border border-[var(--yt-border)] rounded-[1px] yt-input"
             required
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1">Описание</label>
+          <label className="block text-xs font-bold yt-text-primary mb-1">Описание</label>
           <textarea
             placeholder="О чём ваш ролик?"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
-            className="w-full p-2.5 text-xs border border-gray-300 rounded-[1px] bg-[#fdfdfd] resize-none"
+            className="w-full p-2.5 text-xs border border-[var(--yt-border)] rounded-[1px] yt-input resize-none"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1">Видеофайл *</label>
+          <label className="block text-xs font-bold yt-text-primary mb-1">Видеофайл *</label>
           <input
             ref={videoInputRef}
             type="file"
@@ -197,10 +197,10 @@ export default function Upload() {
             required
           />
           {videoPreview && (
-            <video src={videoPreview} controls className="mt-2 w-full max-h-48 bg-black border" />
+            <video src={videoPreview} controls className="mt-2 w-full max-h-48 yt-player-bg border border-[var(--yt-border)]" />
           )}
           {videoFile && (
-            <p className="text-[10px] text-gray-500 mt-1">
+            <p className="text-[10px] yt-text-secondary mt-1">
               {videoFile.name} ({(videoFile.size / 1024 / 1024).toFixed(1)} МБ) • {duration}
             </p>
           )}
@@ -209,7 +209,7 @@ export default function Upload() {
         {contentType === 'video' && (
           <>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Обложка (опционально)</label>
+              <label className="block text-xs font-bold yt-text-primary mb-1">Обложка (опционально)</label>
               <input
                 ref={thumbnailInputRef}
                 type="file"
@@ -218,16 +218,16 @@ export default function Upload() {
                 className="w-full text-xs"
               />
               {thumbnailPreview && (
-                <img src={thumbnailPreview} alt="Preview" className="mt-2 max-h-32 border object-cover" />
+                <img src={thumbnailPreview} alt="Preview" className="mt-2 max-h-32 border border-[var(--yt-border)] object-cover" />
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Категория</label>
+              <label className="block text-xs font-bold yt-text-primary mb-1">Категория</label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3 py-2 border rounded-[1px] text-sm border-gray-300 bg-white"
+                className="w-full px-3 py-2 border rounded-[1px] text-sm border-[var(--yt-border)] yt-input"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
@@ -240,7 +240,7 @@ export default function Upload() {
         <button
           type="submit"
           disabled={submitting || !videoFile}
-          className="w-full bg-yt-red text-white py-2 px-4 rounded-[1px] text-xs font-bold uppercase hover:bg-yt-darkred transition-colors disabled:bg-gray-400 flex items-center justify-center gap-1.5"
+          className="w-full bg-yt-red text-white py-2 px-4 rounded-[1px] text-xs font-bold uppercase hover:bg-yt-darkred transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
           id="btn-upload-submit"
         >
           <UploadIcon size={14} />

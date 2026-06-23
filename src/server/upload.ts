@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const UPLOADS_ROOT = path.join(__dirname, '../../uploads');
 
-const SUBDIRS = ['videos', 'thumbnails', 'images', 'avatars'] as const;
+const SUBDIRS = ['videos', 'thumbnails', 'images', 'avatars', 'banners'] as const;
 export type UploadType = (typeof SUBDIRS)[number];
 
 export function ensureUploadDirs() {
@@ -20,6 +20,7 @@ const MIME_MAP: Record<UploadType, string[]> = {
   thumbnails: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   images: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   avatars: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  banners: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
 };
 
 const MAX_SIZE: Record<UploadType, number> = {
@@ -27,6 +28,7 @@ const MAX_SIZE: Record<UploadType, number> = {
   thumbnails: 10 * 1024 * 1024,
   images: 10 * 1024 * 1024,
   avatars: 5 * 1024 * 1024,
+  banners: 8 * 1024 * 1024,
 };
 
 function extFromMime(mime: string): string {

@@ -63,7 +63,7 @@ api.interceptors.response.use(
 );
 
 export async function uploadFile(
-  type: 'videos' | 'thumbnails' | 'images' | 'avatars',
+  type: 'videos' | 'thumbnails' | 'images' | 'avatars' | 'banners',
   file: File
 ): Promise<string> {
   const formData = new FormData();

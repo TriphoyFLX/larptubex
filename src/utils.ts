@@ -24,6 +24,10 @@ export function formatRelativeDate(dateString: string): string {
 
 export const DEFAULT_AVATAR = '/uploads/default-avatar.svg';
 
+export function formatChannelHandle(user: { handle?: string | null; id: number }): string {
+  return user.handle ? `@${user.handle}` : `@user${user.id}`;
+}
+
 export interface FlatComment {
   id: number;
   content: string;

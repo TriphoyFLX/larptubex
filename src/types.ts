@@ -3,7 +3,9 @@ export interface User {
   uid: string | null;
   email: string;
   displayName: string;
+  handle: string | null;
   avatar: string | null;
+  banner: string | null;
   bio: string | null;
   isAdmin: boolean;
   createdAt: string;

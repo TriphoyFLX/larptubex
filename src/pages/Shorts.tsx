@@ -168,10 +168,10 @@ export default function Shorts() {
 
   if (loading) {
     return (
-      <div className="flex-1 bg-white flex items-center justify-center p-6 h-[calc(100vh-100px)]">
+      <div className="flex-1 yt-page flex items-center justify-center p-6 h-[calc(100vh-100px)]">
         <div className="animate-pulse space-y-4 flex flex-col items-center">
-          <div className="w-[300px] h-[500px] bg-gray-200 rounded"></div>
-          <div className="h-4 bg-gray-200 rounded w-48"></div>
+          <div className="w-[300px] h-[500px] yt-skeleton rounded"></div>
+          <div className="h-4 yt-skeleton rounded w-48"></div>
         </div>
       </div>
     );
@@ -179,7 +179,7 @@ export default function Shorts() {
 
   if (shortsList.length === 0) {
     return (
-      <div className="flex-1 bg-white flex flex-col items-center justify-center p-12 text-gray-500 font-semibold select-none">
+      <div className="flex-1 yt-page flex flex-col items-center justify-center p-12 yt-text-secondary font-semibold select-none">
         <p className="text-sm">В настоящий момент коротких видеороликов Shorts нет.</p>
         <Link to="/upload" className="mt-3 button yt-button-primary uppercase text-xs">
           Опубликовать первое короткое
@@ -189,12 +189,12 @@ export default function Shorts() {
   }
 
   return (
-    <div className="flex-1 bg-gray-100 flex items-center justify-center py-6 px-4 md:px-0 relative h-[calc(100vh-50px)] overflow-hidden" id="shorts-panel">
+    <div className="flex-1 yt-page flex items-center justify-center py-6 px-4 md:px-0 relative h-[calc(100vh-50px)] overflow-hidden" id="shorts-panel">
       <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
         <button
           onClick={handlePrev}
           disabled={activeIndex === 0}
-          className="p-2.5 bg-white hover:bg-gray-100 border border-gray-300 rounded shadow-md text-gray-700 disabled:opacity-40 transition-opacity"
+          className="p-2.5 yt-surface yt-hover border border-[var(--yt-border)] rounded shadow-md yt-text-primary disabled:opacity-40 transition-opacity"
           id="btn-shorts-prev"
         >
           <ChevronUp size={20} className="stroke-[3]" />
@@ -202,7 +202,7 @@ export default function Shorts() {
         <button
           onClick={handleNext}
           disabled={activeIndex === shortsList.length - 1}
-          className="p-2.5 bg-white hover:bg-gray-100 border border-gray-300 rounded shadow-md text-gray-700 disabled:opacity-40 transition-opacity"
+          className="p-2.5 yt-surface yt-hover border border-[var(--yt-border)] rounded shadow-md yt-text-primary disabled:opacity-40 transition-opacity"
           id="btn-shorts-next"
         >
           <ChevronDown size={20} className="stroke-[3]" />
@@ -210,7 +210,7 @@ export default function Shorts() {
       </div>
 
       <div className="relative flex max-w-4xl w-full justify-center items-center h-full max-h-[640px]">
-        <div className="relative aspect-[9/16] h-full max-h-[600px] bg-black border-2 border-gray-900 rounded shadow-2xl overflow-hidden" id="shorts-viewport-card">
+        <div className="relative aspect-[9/16] h-full max-h-[600px] bg-black border-2 border-[var(--yt-border)] rounded shadow-2xl overflow-hidden" id="shorts-viewport-card">
           <video
             ref={(el) => {
               videoRefs.current[activeIndex] = el;
@@ -251,34 +251,34 @@ export default function Shorts() {
           <div className="flex flex-col items-center">
             <button
               onClick={handleLike}
-              className={`p-3.5 rounded-full border border-gray-300 shadow-md ${activeShortDetail?.viewerRating === 'like' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-100 text-gray-700'}`}
+              className={`p-3.5 rounded-full border border-[var(--yt-border)] shadow-md ${activeShortDetail?.viewerRating === 'like' ? 'bg-blue-600 text-white border-blue-600' : 'yt-surface yt-hover yt-text-primary'}`}
               id="btn-shorts-like"
             >
               <ThumbsUp size={16} className="stroke-[3]" />
             </button>
-            <span className="text-[10px] text-gray-600 font-bold mt-1.5">{activeShortDetail?.likesCount || 0}</span>
+            <span className="text-[10px] yt-text-secondary font-bold mt-1.5">{activeShortDetail?.likesCount || 0}</span>
           </div>
 
           <div className="flex flex-col items-center">
             <button
               onClick={handleDislike}
-              className={`p-3.5 rounded-full border border-gray-300 shadow-md ${activeShortDetail?.viewerRating === 'dislike' ? 'bg-red-600 text-white border-red-600' : 'bg-white hover:bg-gray-100 text-gray-700'}`}
+              className={`p-3.5 rounded-full border border-[var(--yt-border)] shadow-md ${activeShortDetail?.viewerRating === 'dislike' ? 'bg-red-600 text-white border-red-600' : 'yt-surface yt-hover yt-text-primary'}`}
               id="btn-shorts-dislike"
             >
               <ThumbsDown size={16} className="stroke-[3]" />
             </button>
-            <span className="text-[10px] text-gray-600 font-bold mt-1.5">{activeShortDetail?.dislikesCount || 0}</span>
+            <span className="text-[10px] yt-text-secondary font-bold mt-1.5">{activeShortDetail?.dislikesCount || 0}</span>
           </div>
 
           <div className="flex flex-col items-center">
             <button
               onClick={() => setShowComments(true)}
-              className="p-3.5 bg-white hover:bg-gray-100 border border-gray-300 rounded-full shadow-md text-gray-700 transition-colors"
+              className="p-3.5 yt-surface yt-hover border border-[var(--yt-border)] rounded-full shadow-md yt-text-primary transition-colors"
               id="btn-shorts-comments-open"
             >
               <MessageSquare size={16} />
             </button>
-            <span className="text-[10px] text-gray-600 font-bold mt-1.5">{comments.length}</span>
+            <span className="text-[10px] yt-text-secondary font-bold mt-1.5">{comments.length}</span>
           </div>
         </div>
 
@@ -289,30 +289,30 @@ export default function Shorts() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-80 bg-white border-l border-gray-200 z-30 shadow-2xl flex flex-col p-4"
+              className="absolute right-0 top-0 bottom-0 w-80 yt-surface border-l border-[var(--yt-border)] z-30 shadow-2xl flex flex-col p-4"
               id="shorts-comments-slideout-drawer"
             >
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
-                <span className="font-bold text-xs text-gray-800 uppercase tracking-wide">Комментарии ({comments.length})</span>
-                <button onClick={() => setShowComments(false)} className="text-gray-400 hover:text-black">
+              <div className="flex items-center justify-between yt-border-b pb-3 mb-3">
+                <span className="font-bold text-xs yt-text-primary uppercase tracking-wide">Комментарии ({comments.length})</span>
+                <button onClick={() => setShowComments(false)} className="yt-text-muted hover:yt-text-primary">
                   <X size={18} />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto space-y-4 max-h-[380px]">
                 {comments.length === 0 ? (
-                  <p className="text-center text-xs text-gray-400 py-20 italic">Напишите первый отзыв к этому Shorts!</p>
+                  <p className="text-center text-xs yt-text-muted py-20 italic">Напишите первый отзыв к этому Shorts!</p>
                 ) : (
                   comments.map((c) => (
-                    <div key={c.id} className="flex gap-2 bg-gray-50/50 p-2 border border-gray-100 rounded-sm">
+                    <div key={c.id} className="flex gap-2 bg-[var(--yt-bg-hover)] p-2 border border-[var(--yt-border)] rounded-sm">
                       <img
                         src={c.authorAvatar || DEFAULT_AVATAR}
-                        className="w-7 h-7 rounded-full object-cover border border-gray-200 shrink-0"
+                        className="w-7 h-7 rounded-full object-cover border border-[var(--yt-border)] shrink-0"
                         alt="Author Avatar"
                       />
                       <div className="min-w-0 flex-1">
-                        <span className="font-bold text-[10px] text-gray-800 block leading-tight">{c.authorName}</span>
-                        <p className="text-[11px] text-gray-700 mt-1 leading-normal break-words">{c.content}</p>
+                        <span className="font-bold text-[10px] yt-text-primary block leading-tight">{c.authorName}</span>
+                        <p className="text-[11px] yt-text-primary mt-1 leading-normal break-words">{c.content}</p>
                       </div>
                     </div>
                   ))
@@ -320,13 +320,13 @@ export default function Shorts() {
               </div>
 
               {user ? (
-                <form onSubmit={handlePostComment} className="mt-auto border-t border-gray-100 pt-3 flex gap-2" id="shorts-comment-form">
+                <form onSubmit={handlePostComment} className="mt-auto yt-border-t pt-3 flex gap-2" id="shorts-comment-form">
                   <input
                     type="text"
                     placeholder="Ваш комментарий..."
                     value={newCommentText}
                     onChange={(e) => setNewCommentText(e.target.value)}
-                    className="flex-1 p-2 text-xs border border-gray-300 rounded-[1px] h-8 focus:border-blue-500"
+                    className="flex-1 p-2 text-xs border border-[var(--yt-border)] rounded-[1px] h-8 yt-input"
                     required
                   />
                   <button type="submit" className="bg-yt-red text-white w-8 h-8 flex items-center justify-center shrink-0 hover:bg-yt-darkred rounded-[1px]">
@@ -334,8 +334,8 @@ export default function Shorts() {
                   </button>
                 </form>
               ) : (
-                <p className="text-[10px] text-gray-400 mt-auto pt-3 text-center">
-                  <Link to="/login" className="text-blue-600 underline font-bold">Войдите</Link>, чтобы комментировать.
+                <p className="text-[10px] yt-text-muted mt-auto pt-3 text-center">
+                  <Link to="/login" className="text-[#3ea6ff] underline font-bold">Войдите</Link>, чтобы комментировать.
                 </p>
               )}
             </motion.div>

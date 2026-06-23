@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { useThemeStore } from './store/themeStore';
 
 // Components
 import Navbar from './components/Navbar.tsx';
@@ -19,13 +20,15 @@ import Admin from './pages/Admin.tsx';
 import Login from './pages/Login.tsx';
 import Register from './pages/Register.tsx';
 import HistoryPage from './pages/History.tsx';
+import Settings from './pages/Settings.tsx';
 
 export default function App() {
   const { initialize, loading } = useAuthStore();
+  const { initialize: initTheme } = useThemeStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    // Hydrate tokens and synchronize active sessions on startup
+    initTheme();
     initialize();
   }, []);
 
@@ -35,24 +38,24 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 select-none font-sans">
+      <div className="min-h-screen yt-app flex flex-col items-center justify-center p-6 select-none font-sans">
         <div className="flex items-center gap-1.5 mb-3">
-          <span className="bg-[#cc181e] text-white font-black text-xs px-2.5 py-0.5 rounded-sm tracking-tight uppercase">LARP</span>
-          <span className="font-display font-black text-xl tracking-tight text-gray-950">Tube<span className="text-[#cc181e]">X</span></span>
+          <span className="bg-yt-red text-white font-black text-xs px-2.5 py-0.5 rounded-sm tracking-tight uppercase">LARP</span>
+          <span className="font-display font-black text-xl tracking-tight yt-text-primary">Tube<span className="text-yt-red">X</span></span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 bg-[#cc181e] rounded-full animate-bounce delay-75"></div>
-          <div className="w-1.5 h-1.5 bg-[#cc181e] rounded-full animate-bounce delay-150"></div>
-          <div className="w-1.5 h-1.5 bg-[#cc181e] rounded-full animate-bounce delay-300"></div>
+          <div className="w-1.5 h-1.5 bg-yt-red rounded-full animate-bounce" />
+          <div className="w-1.5 h-1.5 bg-yt-red rounded-full animate-bounce delay-150" />
+          <div className="w-1.5 h-1.5 bg-yt-red rounded-full animate-bounce delay-300" />
         </div>
-        <p className="text-[10px] text-gray-400 mt-4 uppercase font-bold tracking-widest">Инициализация ретро-платформы...</p>
+        <p className="text-[10px] yt-text-muted mt-4 uppercase font-bold tracking-widest">Загрузка...</p>
       </div>
     );
   }
 
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-white text-gray-900 font-sans" id="larptubex-app">
+      <div className="min-h-screen flex flex-col yt-app font-sans" id="larptubex-app">
         {/* Navigation Bar */}
         <Navbar onSidebarToggle={toggleSidebar} />
 
@@ -72,6 +75,7 @@ export default function App() {
               <Route path="/community" element={<Community />} />
               <Route path="/search" element={<Search />} />
               <Route path="/history" element={<HistoryPage />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/login" element={<Login />} />

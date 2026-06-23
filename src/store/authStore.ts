@@ -15,6 +15,7 @@ interface AuthState {
   // Universal actions
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
+  updateProfile: (payload: Partial<Pick<User, 'displayName' | 'handle' | 'avatar' | 'banner' | 'bio'>>) => Promise<User>;
   initialize: () => Promise<void>;
 }
 
@@ -25,6 +26,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   refreshToken: null,
 
   setUser: (user) => set({ user }),
+
+  updateProfile: async (payload) => {
+    const response = await api.put('/api/user/profile', payload);
+    const updated = response.data as User;
+    localStorage.setItem('larptubex_user_payload', JSON.stringify(updated));
+    set({ user: updated });
+    return updated;
+  },
 
   login: async (email, password) => {
     set({ loading: true });

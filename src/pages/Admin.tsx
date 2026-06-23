@@ -109,33 +109,33 @@ export default function Admin() {
 
   if (loading) {
     return (
-      <div className="flex-1 bg-white p-6 animate-pulse space-y-6">
-        <div className="h-6 bg-gray-200 w-1/4 rounded"></div>
+      <div className="flex-1 yt-page p-6 animate-pulse space-y-6">
+        <div className="h-6 yt-skeleton w-1/4 rounded"></div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1,2,3,4].map(idx => <div key={idx} className="h-20 bg-gray-100 rounded"></div>)}
+          {[1,2,3,4].map(idx => <div key={idx} className="h-20 yt-skeleton rounded"></div>)}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 bg-white p-6" id="admin-view">
+    <div className="flex-1 yt-page p-6" id="admin-view">
       {/* Header banner */}
-      <div className="border-b border-gray-200 pb-3 mb-6 flex justify-between items-center bg-red-50/40 p-4 border rounded">
+      <div className="yt-border-b pb-3 mb-6 flex justify-between items-center bg-red-50/40 dark:bg-red-950/20 p-4 border border-[var(--yt-border)] rounded">
         <div>
-          <h1 className="font-sans font-bold text-sm text-gray-950 uppercase tracking-widest flex items-center gap-2">
+          <h1 className="font-sans font-bold text-sm yt-text-primary uppercase tracking-widest flex items-center gap-2">
             <Shield size={16} className="text-yt-red" />
             Панель управления LarpTubeX Администратора
           </h1>
-          <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tight">Добро пожаловать в центр комплексной системной модерации.</p>
+          <p className="text-[10px] yt-text-muted mt-1 uppercase font-bold tracking-tight">Добро пожаловать в центр комплексной системной модерации.</p>
         </div>
-        <span className="bg-red-200 border border-red-300 text-yt-darkred font-bold text-[10px] px-2.5 py-0.5 select-none uppercase">
+        <span className="bg-red-200 dark:bg-red-900/40 border border-red-300 dark:border-red-800 text-yt-darkred font-bold text-[10px] px-2.5 py-0.5 select-none uppercase">
           Права: Root Admin
         </span>
       </div>
 
       {/* Tabs list representation */}
-      <div className="flex text-xs font-bold border-b border-gray-200 uppercase mb-6" id="admin-dashboard-tabs">
+      <div className="flex text-xs font-bold yt-border-b uppercase mb-6" id="admin-dashboard-tabs">
         {(['stats', 'users', 'videos', 'shorts', 'posts'] as const).map((t) => {
           const names = {
             stats: 'Аналитика / Графики',
@@ -148,7 +148,7 @@ export default function Admin() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`py-2 px-4 border-b-2 transition-all ${tab === t ? 'border-yt-red text-yt-red font-black' : 'border-transparent text-gray-500 font-semibold'}`}
+              className={`py-2 px-4 border-b-2 transition-all ${tab === t ? 'border-yt-red text-yt-red font-black' : 'border-transparent yt-text-secondary font-semibold'}`}
             >
               {names[t]}
             </button>
@@ -161,55 +161,55 @@ export default function Admin() {
         <div className="space-y-6" id="stats-dashboard">
           {/* Tiles */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-50 border border-gray-200 p-4 rounded-sm flex items-center gap-3">
+            <div className="yt-surface border border-[var(--yt-border)] p-4 rounded-sm flex items-center gap-3">
               <Users className="text-blue-500" size={24} />
               <div>
-                <span className="text-[10px] text-gray-400 block font-bold uppercase">Авторы / Каналы</span>
-                <span className="text-sm font-bold text-gray-900">{stats?.users ?? channels.length}</span>
+                <span className="text-[10px] yt-text-muted block font-bold uppercase">Авторы / Каналы</span>
+                <span className="text-sm font-bold yt-text-primary">{stats?.users ?? channels.length}</span>
               </div>
             </div>
 
-            <div className="bg-gray-50 border border-gray-200 p-4 rounded-sm flex items-center gap-3">
+            <div className="yt-surface border border-[var(--yt-border)] p-4 rounded-sm flex items-center gap-3">
               <Film className="text-yt-red" size={24} />
               <div>
-                <span className="text-[10px] text-gray-400 block font-bold uppercase">Видео Клипы</span>
-                <span className="text-sm font-bold text-gray-900">{stats?.videos ?? videos.length}</span>
+                <span className="text-[10px] yt-text-muted block font-bold uppercase">Видео Клипы</span>
+                <span className="text-sm font-bold yt-text-primary">{stats?.videos ?? videos.length}</span>
               </div>
             </div>
 
-            <div className="bg-gray-50 border border-gray-200 p-4 rounded-sm flex items-center gap-3">
+            <div className="yt-surface border border-[var(--yt-border)] p-4 rounded-sm flex items-center gap-3">
               <Film className="text-purple-500" size={24} />
               <div>
-                <span className="text-[10px] text-gray-400 block font-bold uppercase">Shorts клипы</span>
-                <span className="text-sm font-bold text-gray-900">{stats?.shorts ?? shorts.length}</span>
+                <span className="text-[10px] yt-text-muted block font-bold uppercase">Shorts клипы</span>
+                <span className="text-sm font-bold yt-text-primary">{stats?.shorts ?? shorts.length}</span>
               </div>
             </div>
 
-            <div className="bg-gray-50 border border-gray-200 p-4 rounded-sm flex items-center gap-3">
+            <div className="yt-surface border border-[var(--yt-border)] p-4 rounded-sm flex items-center gap-3">
               <MessageSquare className="text-green-500" size={24} />
               <div>
-                <span className="text-[10px] text-gray-400 block font-bold uppercase">Посты сообщества</span>
-                <span className="text-sm font-bold text-gray-900">{stats?.posts ?? posts.length}</span>
+                <span className="text-[10px] yt-text-muted block font-bold uppercase">Посты сообщества</span>
+                <span className="text-sm font-bold yt-text-primary">{stats?.posts ?? posts.length}</span>
               </div>
             </div>
           </div>
 
           {/* Chart metrics */}
-          <div className="bg-white border border-gray-200 p-5 rounded-sm">
-            <h3 className="text-xs font-bold text-gray-900 mb-4 uppercase tracking-wider flex items-center gap-2">
+          <div className="yt-surface border border-[var(--yt-border)] p-5 rounded-sm">
+            <h3 className="text-xs font-bold yt-text-primary mb-4 uppercase tracking-wider flex items-center gap-2">
               <TrendingUp size={14} className="text-blue-500" />
               Статистика платформы (реальные данные из БД)
             </h3>
             {stats && (
-              <p className="text-[10px] text-gray-500 mb-2">Всего просмотров: {stats.totalViews?.toLocaleString() ?? 0}</p>
+              <p className="text-[10px] yt-text-secondary mb-2">Всего просмотров: {stats.totalViews?.toLocaleString() ?? 0}</p>
             )}
             <div className="h-64 mt-4" id="chart-panel">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" stroke="#888" style={{ fontSize: 10 }} />
-                  <YAxis stroke="#888" style={{ fontSize: 10 }} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--yt-border)" />
+                  <XAxis dataKey="name" stroke="var(--yt-text-muted)" style={{ fontSize: 10 }} />
+                  <YAxis stroke="var(--yt-text-muted)" style={{ fontSize: 10 }} />
+                  <Tooltip contentStyle={{ background: 'var(--yt-bg-elevated)', border: '1px solid var(--yt-border)', color: 'var(--yt-text)' }} />
                   <Bar dataKey="count" fill="#cc181e" />
                 </BarChart>
               </ResponsiveContainer>
@@ -220,9 +220,9 @@ export default function Admin() {
 
       {/* 2. CHANNELS TABLE */}
       {tab === 'users' && (
-        <div className="bg-white border border-gray-200 rounded-sm overflow-hidden" id="admin-users-table">
-          <table className="w-full text-xs text-left text-gray-700">
-            <thead className="bg-gray-50 border-b text-[10px] uppercase font-bold text-gray-500">
+        <div className="yt-surface border border-[var(--yt-border)] rounded-sm overflow-hidden" id="admin-users-table">
+          <table className="w-full text-xs text-left yt-text-primary">
+            <thead className="bg-[var(--yt-bg-hover)] yt-border-b text-[10px] uppercase font-bold yt-text-secondary">
               <tr>
                 <th className="p-3">Аватар / ID</th>
                 <th className="p-3">Название канала</th>
@@ -231,17 +231,17 @@ export default function Admin() {
                 <th className="p-3 text-right">Модерация</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-[var(--yt-border)]">
               {channels.map((chan) => (
-                <tr key={chan.id} className="hover:bg-gray-50/50">
+                <tr key={chan.id} className="yt-hover">
                   <td className="p-3 flex items-center gap-2">
-                    <img src={chan.avatar || DEFAULT_AVATAR} className="w-6 h-6 rounded-full object-cover border" alt="V" />
-                    <span className="font-mono font-bold text-[10px] text-gray-400">#{chan.id}</span>
+                    <img src={chan.avatar || DEFAULT_AVATAR} className="w-6 h-6 rounded-full object-cover border border-[var(--yt-border)]" alt="V" />
+                    <span className="font-mono font-bold text-[10px] yt-text-muted">#{chan.id}</span>
                   </td>
                   <td className="p-3 font-bold">{chan.displayName}</td>
                   <td className="p-3 font-mono">{chan.email}</td>
                   <td className="p-3">
-                    <span className={`px-2 py-0.5 rounded font-bold uppercase text-[9px] ${chan.isAdmin ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'}`}>
+                    <span className={`px-2 py-0.5 rounded font-bold uppercase text-[9px] ${chan.isAdmin ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300' : 'bg-[var(--yt-bg-hover)] yt-text-primary'}`}>
                       {chan.isAdmin ? 'ADMIN' : 'USER'}
                     </span>
                   </td>
@@ -263,18 +263,18 @@ export default function Admin() {
       {tab === 'videos' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="admin-videos-mod">
           {videos.length === 0 ? (
-            <p className="text-center text-xs text-gray-400 py-10 col-span-full italic">На платформе отсутствуют стандартные видео.</p>
+            <p className="text-center text-xs yt-text-muted py-10 col-span-full italic">На платформе отсутствуют стандартные видео.</p>
           ) : (
             videos.map((v) => (
-              <div key={v.id} className="border border-gray-200 bg-gray-50 rounded-sm overflow-hidden flex flex-col p-3">
-                <div className="aspect-video bg-black relative border">
+              <div key={v.id} className="border border-[var(--yt-border)] yt-surface rounded-sm overflow-hidden flex flex-col p-3">
+                <div className="aspect-video bg-black relative border border-[var(--yt-border)]">
                   <img src={v.thumbnailUrl} className="w-full h-full object-cover" alt="Cover" />
                 </div>
-                <h4 className="font-bold text-[11px] text-gray-950 mt-2 truncate">{v.title}</h4>
-                <p className="text-[10px] text-gray-400 mt-1">Автор: {v.authorName}</p>
-                <div className="flex justify-between items-center mt-3 border-t pt-2.5">
-                  <span className="text-[9px] text-gray-400 uppercase font-black">Просмотры: {v.views}</span>
-                  <button onClick={() => handleDeleteVideo(v.id)} className="p-1 px-2.5 border border-red-300 bg-red-50 text-red-600 rounded text-[10px] font-bold hover:bg-red-100 transition-colors flex items-center gap-1 uppercase select-none">
+                <h4 className="font-bold text-[11px] yt-text-primary mt-2 truncate">{v.title}</h4>
+                <p className="text-[10px] yt-text-muted mt-1">Автор: {v.authorName}</p>
+                <div className="flex justify-between items-center mt-3 yt-border-t pt-2.5">
+                  <span className="text-[9px] yt-text-muted uppercase font-black">Просмотры: {v.views}</span>
+                  <button onClick={() => handleDeleteVideo(v.id)} className="p-1 px-2.5 border border-red-300 bg-red-50 dark:bg-red-900/30 text-red-600 rounded text-[10px] font-bold hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors flex items-center gap-1 uppercase select-none">
                     <Trash2 size={11} /> Удалить
                   </button>
                 </div>
@@ -288,13 +288,13 @@ export default function Admin() {
       {tab === 'shorts' && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="admin-shorts-mod">
           {shorts.length === 0 ? (
-            <p className="text-center text-xs text-gray-400 py-10 col-span-full italic">На платформе отсутствуют короткие клипы Shorts.</p>
+            <p className="text-center text-xs yt-text-muted py-10 col-span-full italic">На платформе отсутствуют короткие клипы Shorts.</p>
           ) : (
             shorts.map((s) => (
-              <div key={s.id} className="border border-gray-200 bg-gray-50 rounded-sm overflow-hidden flex flex-col p-2.5">
-                <span className="font-bold text-[11px] text-gray-950 leading-tight block truncate uppercase-none">{s.title}</span>
-                <p className="text-[9px] text-gray-400 mt-1">Автор: {s.authorName}</p>
-                <button onClick={() => handleDeleteShort(s.id)} className="mt-4 w-full border border-red-300 bg-red-100/30 text-red-600 hover:bg-red-100 rounded text-[9px] font-black uppercase py-1 select-none flex items-center justify-center gap-1">
+              <div key={s.id} className="border border-[var(--yt-border)] yt-surface rounded-sm overflow-hidden flex flex-col p-2.5">
+                <span className="font-bold text-[11px] yt-text-primary leading-tight block truncate uppercase-none">{s.title}</span>
+                <p className="text-[9px] yt-text-muted mt-1">Автор: {s.authorName}</p>
+                <button onClick={() => handleDeleteShort(s.id)} className="mt-4 w-full border border-red-300 bg-red-100/30 dark:bg-red-900/30 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded text-[9px] font-black uppercase py-1 select-none flex items-center justify-center gap-1">
                   <Trash2 size={11} /> Удалить клип
                 </button>
               </div>
@@ -307,15 +307,15 @@ export default function Admin() {
       {tab === 'posts' && (
         <div className="space-y-4" id="admin-posts-mod">
           {posts.length === 0 ? (
-            <p className="text-center text-xs text-gray-400 py-10 italic">Записи в ленте сообщества отсутствуют.</p>
+            <p className="text-center text-xs yt-text-muted py-10 italic">Записи в ленте сообщества отсутствуют.</p>
           ) : (
             posts.map((p) => (
-              <div key={p.id} className="border border-gray-200 p-4 rounded-sm bg-gray-50 flex justify-between items-start gap-4">
+              <div key={p.id} className="border border-[var(--yt-border)] p-4 rounded-sm yt-surface flex justify-between items-start gap-4">
                 <div className="flex-1">
-                  <span className="font-bold text-xs text-gray-950 block mb-1">
-                    Пост от @{p.authorName} <span className="font-normal text-[10px] text-gray-400">({new Date(p.createdAt).toLocaleDateString()})</span>
+                  <span className="font-bold text-xs yt-text-primary block mb-1">
+                    Пост от @{p.authorName} <span className="font-normal text-[10px] yt-text-muted">({new Date(p.createdAt).toLocaleDateString()})</span>
                   </span>
-                  <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{p.content}</p>
+                  <p className="text-xs yt-text-primary whitespace-pre-wrap leading-relaxed">{p.content}</p>
                 </div>
                 <button onClick={() => handleDeletePost(p.id)} className="text-red-500 font-bold hover:underline uppercase text-[10px]">
                   Удалить запись

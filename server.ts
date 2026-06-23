@@ -52,6 +52,61 @@ app.use((req, res, next) => {
 
 const DEFAULT_AVATAR = '/uploads/default-avatar.svg';
 
+function slugifyHandle(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, '')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+  return slug.slice(0, 30) || 'channel';
+}
+
+async function generateUniqueHandle(base: string): Promise<string> {
+  const normalized = slugifyHandle(base);
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const candidate = attempt === 0 ? normalized : `${normalized.slice(0, 24)}${attempt}`;
+    const existing = await prisma.user.findUnique({ where: { handle: candidate } });
+    if (!existing) return candidate;
+  }
+  return `channel${Date.now()}`;
+}
+
+function validateProfilePayload(body: { displayName?: string; handle?: string; bio?: string }) {
+  const errors: string[] = [];
+  const result: { displayName?: string; handle?: string; bio?: string } = {};
+
+  if (body.displayName !== undefined) {
+    const name = String(body.displayName).trim();
+    if (name.length < 2 || name.length > 50) {
+      errors.push('Имя канала должно быть от 2 до 50 символов');
+    } else {
+      result.displayName = name;
+    }
+  }
+
+  if (body.handle !== undefined) {
+    const handle = String(body.handle).trim().toLowerCase().replace(/^@/, '');
+    if (handle.length < 3 || handle.length > 30) {
+      errors.push('Имя пользователя (@handle) — от 3 до 30 символов');
+    } else if (!/^[a-z0-9_]+$/.test(handle)) {
+      errors.push('Имя пользователя может содержать только латиницу, цифры и _');
+    } else {
+      result.handle = handle;
+    }
+  }
+
+  if (body.bio !== undefined) {
+    const bio = String(body.bio).trim();
+    if (bio.length > 1000) {
+      errors.push('Описание канала — не более 1000 символов');
+    } else {
+      result.bio = bio;
+    }
+  }
+
+  return { errors, result };
+}
+
 function ensureDefaultAvatar() {
   const avatarPath = path.join(UPLOADS_ROOT, 'default-avatar.svg');
   if (!fs.existsSync(avatarPath)) {
@@ -155,6 +210,7 @@ const uploaders = {
   thumbnails: createUploader('thumbnails'),
   images: createUploader('images'),
   avatars: createUploader('avatars'),
+  banners: createUploader('banners'),
 };
 
 app.post('/api/upload/:type', requireAuth, (req: AuthRequest, res) => {
@@ -201,11 +257,13 @@ app.post('/api/auth/register', async (req, res) => {
     const shouldBeAdmin = trimmedEmail === 'roomop86@gmail.com';
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const defaultHandle = await generateUniqueHandle(displayName.trim());
     const newUser = await prisma.user.create({
       data: {
         email: trimmedEmail,
         password: hashedPassword,
         displayName: displayName.trim(),
+        handle: defaultHandle,
         avatar: avatar || DEFAULT_AVATAR,
         bio: bio || 'Любитель качественного видео и ламповой атмосферы',
         isAdmin: shouldBeAdmin,
@@ -219,7 +277,9 @@ app.post('/api/auth/register', async (req, res) => {
         id: newUser.id,
         email: newUser.email,
         displayName: newUser.displayName,
+        handle: newUser.handle,
         avatar: newUser.avatar,
+        banner: newUser.banner,
         bio: newUser.bio,
         isAdmin: newUser.isAdmin,
       },
@@ -272,7 +332,9 @@ app.post('/api/auth/login', async (req, res) => {
         id: matchUser.id,
         email: matchUser.email,
         displayName: matchUser.displayName,
+        handle: matchUser.handle,
         avatar: matchUser.avatar,
+        banner: matchUser.banner,
         bio: matchUser.bio,
         isAdmin: matchUser.isAdmin,
       },
@@ -1172,7 +1234,9 @@ app.get('/api/channels/:id', async (req, res) => {
     res.json({
       id: channel.id,
       displayName: channel.displayName,
+      handle: channel.handle,
       avatar: channel.avatar,
+      banner: channel.banner,
       bio: channel.bio,
       createdAt: channel.createdAt,
       subscribersCount: subsCount,
@@ -1374,20 +1438,64 @@ app.get('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
 });
 
 app.put('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
-  const { displayName, avatar, bio } = req.body;
+  const { displayName, avatar, banner, handle, bio } = req.body;
   try {
+    const { errors, result } = validateProfilePayload({ displayName, handle, bio });
+    if (errors.length > 0) {
+      return res.status(400).json({ error: errors[0], errors });
+    }
+
+    if (result.handle && result.handle !== req.user!.handle) {
+      const taken = await prisma.user.findUnique({ where: { handle: result.handle } });
+      if (taken && taken.id !== req.user!.id) {
+        return res.status(400).json({ error: 'Это имя пользователя уже занято' });
+      }
+    }
+
+    let finalHandle = result.handle ?? req.user!.handle;
+    if (!finalHandle) {
+      finalHandle = await generateUniqueHandle(result.displayName ?? req.user!.displayName);
+    }
+
     const updated = await prisma.user.update({
       where: { id: req.user!.id },
       data: {
-        displayName: displayName || req.user!.displayName,
+        displayName: result.displayName ?? req.user!.displayName,
+        handle: finalHandle,
         avatar: avatar !== undefined ? avatar : req.user!.avatar,
-        bio: bio !== undefined ? bio : req.user!.bio,
-      }
+        banner: banner !== undefined ? banner : req.user!.banner,
+        bio: result.bio !== undefined ? result.bio : req.user!.bio,
+      },
     });
-    res.json(updated);
-  } catch {
-    res.status(500).json({ error: 'Update profile error' });
+
+    res.json({
+      id: updated.id,
+      email: updated.email,
+      displayName: updated.displayName,
+      handle: updated.handle,
+      avatar: updated.avatar,
+      banner: updated.banner,
+      bio: updated.bio,
+      isAdmin: updated.isAdmin,
+      createdAt: updated.createdAt,
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ error: 'Ошибка обновления профиля' });
   }
+});
+
+app.get('/api/user/handle/check', requireAuth, async (req: AuthRequest, res) => {
+  const handle = String(req.query.handle || '').trim().toLowerCase().replace(/^@/, '');
+  if (!handle || handle.length < 3) {
+    return res.json({ available: false, error: 'Слишком короткое имя' });
+  }
+  if (!/^[a-z0-9_]+$/.test(handle)) {
+    return res.json({ available: false, error: 'Недопустимые символы' });
+  }
+  const existing = await prisma.user.findUnique({ where: { handle } });
+  const available = !existing || existing.id === req.user!.id;
+  res.json({ available });
 });
 
 // --- 10. Notifications API ---

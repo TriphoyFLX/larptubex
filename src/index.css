@@ -1,81 +1,147 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  
-  --color-yt-red: #cc181e;
-  --color-yt-darkred: #b31217;
+
+  --color-yt-red: #ff0000;
+  --color-yt-darkred: #cc0000;
   --color-yt-gray: #f1f1f1;
+}
+
+/* ── YouTube Light Theme ── */
+:root {
+  --yt-bg: #ffffff;
+  --yt-bg-secondary: #f9f9f9;
+  --yt-bg-sidebar: #ffffff;
+  --yt-bg-elevated: #ffffff;
+  --yt-bg-hover: #f2f2f2;
+  --yt-bg-active: #e5e5e5;
+  --yt-bg-input: #ffffff;
+  --yt-bg-search: #ffffff;
+  --yt-bg-chip: #f2f2f2;
+  --yt-bg-chip-active: #0f0f0f;
+  --yt-border: #e5e5e5;
+  --yt-border-strong: #cccccc;
+  --yt-text: #0f0f0f;
+  --yt-text-secondary: #606060;
+  --yt-text-muted: #909090;
+  --yt-scrollbar-track: #f9f9f9;
+  --yt-scrollbar-thumb: #c1c1c1;
+  --yt-shadow: rgba(0, 0, 0, 0.1);
+  --yt-overlay: rgba(0, 0, 0, 0.6);
+  --yt-brand: #cc181e;
+  --yt-brand-hover: #b31217;
+}
+
+/* ── YouTube Dark Theme ── */
+.dark {
+  --yt-bg: #0f0f0f;
+  --yt-bg-secondary: #0f0f0f;
+  --yt-bg-sidebar: #0f0f0f;
+  --yt-bg-elevated: #212121;
+  --yt-bg-hover: #272727;
+  --yt-bg-active: #3f3f3f;
+  --yt-bg-input: #121212;
+  --yt-bg-search: #121212;
+  --yt-bg-chip: #272727;
+  --yt-bg-chip-active: #f1f1f1;
+  --yt-border: #303030;
+  --yt-border-strong: #3f3f3f;
+  --yt-text: #f1f1f1;
+  --yt-text-secondary: #aaaaaa;
+  --yt-text-muted: #717171;
+  --yt-scrollbar-track: #0f0f0f;
+  --yt-scrollbar-thumb: #3f3f3f;
+  --yt-shadow: rgba(0, 0, 0, 0.4);
+  --yt-overlay: rgba(0, 0, 0, 0.8);
+  --yt-brand: #ff0000;
+  --yt-brand-hover: #cc0000;
+
+  --color-yt-red: #ff0000;
+  --color-yt-darkred: #cc0000;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #ffffff;
-  color: #111111;
+  background-color: var(--yt-bg);
+  color: var(--yt-text);
   overflow-y: scroll;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Custom scrollbars like old YouTube but crisp */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #f8f8f8;
-  border-left: 1px solid #e8e8e8;
-}
-::-webkit-scrollbar-thumb {
-  background: #d3d3d3;
-  border-radius: 0px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
-}
+/* Scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--yt-scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--yt-scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--yt-text-muted); }
 
-/* Custom Clean minimalist inputs */
+/* Global form elements */
 input, textarea, select {
   outline: none;
-  border: 1px solid #ccc;
+  border: 1px solid var(--yt-border-strong);
   border-radius: 2px;
   font-size: 14px;
+  background: var(--yt-bg-input);
+  color: var(--yt-text);
 }
+input::placeholder, textarea::placeholder { color: var(--yt-text-muted); }
 input:focus, textarea:focus, select:focus {
-  border-color: #3b82f6;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+  border-color: #1c62b9;
+  box-shadow: inset 0 1px 2px var(--yt-shadow);
 }
 
-/* Classic button focus */
-button {
-  cursor: pointer;
-}
+button { cursor: pointer; }
 
-/* Standard Clean button style */
+/* ── Semantic layout utilities ── */
+.yt-app { background: var(--yt-bg); color: var(--yt-text); }
+.yt-page { background: var(--yt-bg); color: var(--yt-text); }
+.yt-surface { background: var(--yt-bg-elevated); color: var(--yt-text); border-color: var(--yt-border); }
+.yt-surface-2 { background: var(--yt-bg-secondary); color: var(--yt-text); }
+.yt-sidebar { background: var(--yt-bg-sidebar); border-color: var(--yt-border); }
+.yt-navbar { background: var(--yt-bg); border-color: var(--yt-border); }
+.yt-text-primary { color: var(--yt-text); }
+.yt-text-secondary { color: var(--yt-text-secondary); }
+.yt-text-muted { color: var(--yt-text-muted); }
+.yt-border-b { border-bottom: 1px solid var(--yt-border); }
+.yt-border-t { border-top: 1px solid var(--yt-border); }
+.yt-border { border: 1px solid var(--yt-border); }
+.yt-hover:hover { background: var(--yt-bg-hover); }
+.yt-active { background: var(--yt-bg-active); }
+.yt-skeleton { background: var(--yt-bg-hover); }
+.yt-dropdown { background: var(--yt-bg-elevated); border: 1px solid var(--yt-border); box-shadow: 0 4px 16px var(--yt-shadow); }
+.yt-input { background: var(--yt-bg-input); border: 1px solid var(--yt-border-strong); color: var(--yt-text); }
+.yt-search { background: var(--yt-bg-search); border: 1px solid var(--yt-border-strong); color: var(--yt-text); }
+.yt-chip { background: var(--yt-bg-chip); border: 1px solid var(--yt-border); color: var(--yt-text); }
+.yt-chip-active { background: var(--yt-bg-chip-active); border-color: var(--yt-bg-chip-active); color: var(--yt-bg); }
+.yt-desc-box { background: var(--yt-bg-hover); border: 1px solid var(--yt-border); color: var(--yt-text); }
+
+/* Buttons */
 .yt-button {
-  background-color: #f8f8f8;
-  color: #333333;
-  border: 1px solid #d3d3d3;
-  border-radius: 2px;
+  background-color: var(--yt-bg-hover);
+  color: var(--yt-text);
+  border: 1px solid var(--yt-border-strong);
+  border-radius: 18px;
   padding: 6px 14px;
   font-size: 11px;
   font-weight: 600;
-  box-shadow: 0 1px 1px rgba(0,0,0,0.03);
   text-transform: uppercase;
   letter-spacing: 0.025em;
   transition: all 0.15s ease-in-out;
 }
 .yt-button:hover {
-  background-color: #efefef;
-  border-color: #b0b0b0;
-  color: #111111;
+  background-color: var(--yt-bg-active);
+  border-color: var(--yt-text-muted);
 }
 .yt-button-primary {
-  background-color: #cc181e;
+  background-color: var(--yt-brand);
   color: #ffffff;
-  border: 1px solid #b31217;
-  border-radius: 2px;
+  border: 1px solid var(--yt-brand-hover);
+  border-radius: 18px;
   padding: 6px 14px;
   font-size: 11px;
   font-weight: 600;
@@ -83,14 +149,36 @@ button {
   letter-spacing: 0.025em;
   transition: all 0.15s ease-in-out;
 }
-.yt-button-primary:hover {
-  background-color: #b31217;
-}
+.yt-button-primary:hover { background-color: var(--yt-brand-hover); }
 
-/* Card classes */
 .yt-card {
-  background: #ffffff;
-  border: 1px solid #e8e8e8;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  background: var(--yt-bg-elevated);
+  border: 1px solid var(--yt-border);
+  box-shadow: 0 1px 2px var(--yt-shadow);
 }
 
+/* Video player area stays black in both themes */
+.yt-player-bg { background: #000000; }
+
+/* Theme toggle pill (YouTube settings style) */
+.yt-theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: var(--yt-text);
+  font-size: 13px;
+  font-weight: 500;
+}
+.yt-theme-option:hover { background: var(--yt-bg-hover); }
+.yt-theme-option.active { background: var(--yt-bg-active); }
+.yt-theme-option .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--yt-brand);
+  opacity: 0;
+}
+.yt-theme-option.active .dot { opacity: 1; }

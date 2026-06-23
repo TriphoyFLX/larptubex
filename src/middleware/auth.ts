@@ -11,6 +11,8 @@ export interface AuthRequest extends Request {
     email: string;
     displayName: string;
     avatar: string | null;
+    banner?: string | null;
+    handle?: string | null;
     bio: string | null;
     isAdmin: boolean;
   };
