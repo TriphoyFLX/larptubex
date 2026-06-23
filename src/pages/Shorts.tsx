@@ -7,6 +7,7 @@ import api from '../api/index.ts';
 import { Short, Comment } from '../types.ts';
 import { DEFAULT_AVATAR } from '../utils.ts';
 import { useWatchProgress } from '../hooks/useWatchProgress.ts';
+import { setPageMeta } from '../seo.ts';
 
 interface ShortDetail extends Short {
   viewerRating?: 'like' | 'dislike' | null;
@@ -37,6 +38,10 @@ export default function Shorts() {
   });
 
   useEffect(() => {
+    setPageMeta({
+      title: 'Shorts',
+      description: 'Короткие вертикальные видео на LarpTubeX — смотрите, лайкайте и комментируйте.',
+    });
     fetchShorts();
   }, [user]);
 

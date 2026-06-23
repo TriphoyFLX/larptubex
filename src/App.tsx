@@ -19,27 +19,26 @@ import Admin from './pages/Admin.tsx';
 import Login from './pages/Login.tsx';
 import Register from './pages/Register.tsx';
 import HistoryPage from './pages/History.tsx';
+import BrandLogo from './components/BrandLogo.tsx';
+import { SITE, setPageMeta } from './seo.ts';
 
 export default function App() {
-  const { initialize, loading } = useAuthStore();
+  const { initialize, initializing } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    // Hydrate tokens and synchronize active sessions on startup
     initialize();
+    setPageMeta({ title: SITE.title, description: SITE.description });
   }, []);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
   };
 
-  if (loading) {
+  if (initializing) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 select-none font-sans">
-        <div className="flex items-center gap-1.5 mb-3">
-          <span className="bg-[#cc181e] text-white font-black text-xs px-2.5 py-0.5 rounded-sm tracking-tight uppercase">LARP</span>
-          <span className="font-display font-black text-xl tracking-tight text-gray-950">Tube<span className="text-[#cc181e]">X</span></span>
-        </div>
+        <BrandLogo variant="splash" linked={false} className="mb-4" />
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 bg-[#cc181e] rounded-full animate-bounce delay-75"></div>
           <div className="w-1.5 h-1.5 bg-[#cc181e] rounded-full animate-bounce delay-150"></div>

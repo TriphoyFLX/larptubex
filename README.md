@@ -32,6 +32,15 @@ YouTube-style video platform: React + Express + PostgreSQL (Prisma).
    ```
    App: http://localhost:3000
 
+## Брендинг
+
+Статические файлы бренда лежат в `public/brand/`:
+
+- `logo.png` — основной логотип (navbar, favicon, OG)
+- `logo.svg` — векторная версия
+
+Favicon: `public/favicon.png`, манифест: `public/site.webmanifest`.
+
 ## Scripts
 
 | Command | Description |
@@ -40,3 +49,18 @@ YouTube-style video platform: React + Express + PostgreSQL (Prisma).
 | `npm run build` | Production build |
 | `npm start` | Run production server |
 | `npm run lint` | TypeScript check |
+
+## Для команды (клон и запуск)
+
+```bash
+git clone https://github.com/TriphoyFLX/larptubex.git
+cd larptubex
+npm install
+cp .env.example .env
+# отредактируйте .env: DATABASE_URL, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
+npx prisma db push
+npx prisma generate
+npm run dev
+```
+
+Файл `.env` не в git — каждый разработчик создаёт свой локально.

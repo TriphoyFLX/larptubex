@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -21,7 +22,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 import { prisma } from './src/db/prisma.ts';
-import { requireAuth, optionalAuth, AuthRequest } from './src/middleware/auth.ts';
+import { requireAuth, requireAdmin, optionalAuth, AuthRequest } from './src/middleware/auth.ts';
 import {
   upsertVideoProgress,
   upsertShortProgress,
@@ -32,10 +33,19 @@ import {
   getContinueWatching,
   getProgressPercent,
 } from './src/server/views.ts';
+import {
+  getJwtSecret,
+  getAdminEmail,
+  isReservedAdminEmail,
+  sanitizeUser,
+  validateUserPassword,
+  createRateLimiter,
+} from './src/server/security.ts';
 
 const app = express();
 const PORT = 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'larptubex_secret_jwt_key_2026';
+const JWT_SECRET = getJwtSecret();
+const authRateLimit = createRateLimiter(15, 15 * 60 * 1000);
 
 app.use(express.json({ limit: '2mb' }));
 
@@ -47,6 +57,8 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   next();
 });
 
@@ -137,9 +149,60 @@ async function seedDatabase() {
       });
     }
 
+    await ensureAdminAccount();
+
     console.log('Prisma Database verification successfully done!');
   } catch (error) {
     console.error('Database Seeding Failed:', error);
+  }
+}
+
+async function ensureAdminAccount() {
+  const adminEmail = getAdminEmail();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    console.warn('[security] ADMIN_PASSWORD not set — admin account will not be created/updated');
+    return;
+  }
+
+  const passwordError = validateUserPassword(adminPassword);
+  if (passwordError) {
+    console.warn(`[security] ADMIN_PASSWORD is weak: ${passwordError}`);
+    return;
+  }
+
+  const hashedPassword = await bcrypt.hash(adminPassword, 12);
+  const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+
+  if (!existing) {
+    await prisma.user.create({
+      data: {
+        email: adminEmail,
+        password: hashedPassword,
+        displayName: 'LarpTubex Admin',
+        avatar: DEFAULT_AVATAR,
+        bio: 'Администратор платформы LarpTubeX',
+        isAdmin: true,
+      },
+    });
+    console.log(`[security] Admin account created: ${adminEmail}`);
+    return;
+  }
+
+  await prisma.user.update({
+    where: { id: existing.id },
+    data: {
+      isAdmin: true,
+      password: hashedPassword,
+    },
+  });
+  console.log(`[security] Admin account synced: ${adminEmail}`);
+
+  const legacyBackdoor = await prisma.user.findUnique({ where: { email: 'roomop86@gmail.com' } });
+  if (legacyBackdoor && legacyBackdoor.email !== adminEmail && legacyBackdoor.isAdmin) {
+    await prisma.user.update({ where: { id: legacyBackdoor.id }, data: { isAdmin: false } });
+    console.log('[security] Removed legacy auto-admin from roomop86@gmail.com');
   }
 }
 
@@ -183,11 +246,21 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Пожалуйста, введите email, пароль и имя' });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Пароль должен содержать минимум 6 символов' });
+    const passwordError = validateUserPassword(password);
+    if (passwordError) {
+      return res.status(400).json({ error: passwordError });
     }
 
     const trimmedEmail = email.trim().toLowerCase();
+
+    if (isReservedAdminEmail(trimmedEmail)) {
+      return res.status(403).json({ error: 'Этот email зарезервирован. Регистрация через форму недоступна.' });
+    }
+
+    const limit = authRateLimit(`register:${req.ip}:${trimmedEmail}`);
+    if (!limit.allowed) {
+      return res.status(429).json({ error: `Слишком много попыток. Повторите через ${limit.retryAfterSec} сек.` });
+    }
     
     // Check existing User
     const existing = await prisma.user.findUnique({
@@ -197,10 +270,7 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Пользователь с таким email уже зарегистрирован' });
     }
 
-    // Force roomop86@gmail.com to be Admin
-    const shouldBeAdmin = trimmedEmail === 'roomop86@gmail.com';
-
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
     const newUser = await prisma.user.create({
       data: {
         email: trimmedEmail,
@@ -208,21 +278,14 @@ app.post('/api/auth/register', async (req, res) => {
         displayName: displayName.trim(),
         avatar: avatar || DEFAULT_AVATAR,
         bio: bio || 'Любитель качественного видео и ламповой атмосферы',
-        isAdmin: shouldBeAdmin,
+        isAdmin: false,
       }
     });
 
     const { accessToken, refreshToken } = generateTokens(newUser);
 
     res.status(201).json({
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        displayName: newUser.displayName,
-        avatar: newUser.avatar,
-        bio: newUser.bio,
-        isAdmin: newUser.isAdmin,
-      },
+      user: sanitizeUser(newUser),
       accessToken,
       refreshToken,
     });
@@ -240,11 +303,17 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const trimmedEmail = email.trim().toLowerCase();
+
+    const limit = authRateLimit(`login:${req.ip}:${trimmedEmail}`);
+    if (!limit.allowed) {
+      return res.status(429).json({ error: `Слишком много попыток входа. Повторите через ${limit.retryAfterSec} сек.` });
+    }
+
     const matchUser = await prisma.user.findUnique({
       where: { email: trimmedEmail }
     });
     if (!matchUser) {
-      return res.status(401).json({ error: 'Пользователь не найден' });
+      return res.status(401).json({ error: 'Неверный email или пароль' });
     }
 
     if (!matchUser.password) {
@@ -253,29 +322,13 @@ app.post('/api/auth/login', async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, matchUser.password);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Неверный пароль' });
-    }
-
-    // Double check roomop86@gmail.com is set as Admin
-    if (trimmedEmail === 'roomop86@gmail.com' && !matchUser.isAdmin) {
-      const updatedUser = await prisma.user.update({
-        where: { id: matchUser.id },
-        data: { isAdmin: true }
-      });
-      Object.assign(matchUser, updatedUser);
+      return res.status(401).json({ error: 'Неверный email или пароль' });
     }
 
     const { accessToken, refreshToken } = generateTokens(matchUser);
 
     res.json({
-      user: {
-        id: matchUser.id,
-        email: matchUser.email,
-        displayName: matchUser.displayName,
-        avatar: matchUser.avatar,
-        bio: matchUser.bio,
-        isAdmin: matchUser.isAdmin,
-      },
+      user: sanitizeUser(matchUser),
       accessToken,
       refreshToken,
     });
@@ -1364,7 +1417,7 @@ app.get('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
     }));
 
     res.json({
-      user: userDetail,
+      user: sanitizeUser(userDetail),
       history: parsedHistory,
       subscriptions: parsedChannels,
     });
@@ -1384,7 +1437,7 @@ app.put('/api/user/profile', requireAuth, async (req: AuthRequest, res) => {
         bio: bio !== undefined ? bio : req.user!.bio,
       }
     });
-    res.json(updated);
+    res.json(sanitizeUser(updated));
   } catch {
     res.status(500).json({ error: 'Update profile error' });
   }
@@ -1523,11 +1576,7 @@ app.get('/api/search', async (req, res) => {
 });
 
 // --- 12. Admin Board & Stats API ---
-app.get('/api/admin/stats', requireAuth, async (req: AuthRequest, res) => {
-  if (!req.user!.isAdmin) {
-    return res.status(403).json({ error: 'Доступ запрещен. Требуются права администратора.' });
-  }
-
+app.get('/api/admin/stats', requireAuth, requireAdmin, async (req: AuthRequest, res) => {
   try {
     const userCount = await prisma.user.count();
     const videoCount = await prisma.video.count();
@@ -1554,26 +1603,31 @@ app.get('/api/admin/stats', requireAuth, async (req: AuthRequest, res) => {
   }
 });
 
-app.get('/api/admin/users', requireAuth, async (req: AuthRequest, res) => {
-  if (!req.user!.isAdmin) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
+app.get('/api/admin/users', requireAuth, requireAdmin, async (req: AuthRequest, res) => {
   try {
     const allUsers = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' }
     });
-    res.json(allUsers);
+    res.json(allUsers.map(sanitizeUser));
   } catch (e) {
     res.status(500).json({ error: 'Users loading failed' });
   }
 });
 
-app.delete('/api/admin/users/:id', requireAuth, async (req: AuthRequest, res) => {
-  if (!req.user!.isAdmin) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
+app.delete('/api/admin/users/:id', requireAuth, requireAdmin, async (req: AuthRequest, res) => {
   const deleteUserId = Number(req.params.id);
+  if (deleteUserId === req.user!.id) {
+    return res.status(400).json({ error: 'Нельзя удалить собственный аккаунт администратора' });
+  }
   try {
+    const target = await prisma.user.findUnique({ where: { id: deleteUserId } });
+    if (!target) return res.status(404).json({ error: 'Пользователь не найден' });
+    if (target.isAdmin) {
+      const adminCount = await prisma.user.count({ where: { isAdmin: true } });
+      if (adminCount <= 1) {
+        return res.status(400).json({ error: 'Нельзя удалить последнего администратора' });
+      }
+    }
     await prisma.user.delete({ where: { id: deleteUserId } });
     res.json({ success: true });
   } catch (e) {
@@ -1581,10 +1635,7 @@ app.delete('/api/admin/users/:id', requireAuth, async (req: AuthRequest, res) =>
   }
 });
 
-app.delete('/api/admin/videos/:id', requireAuth, async (req: AuthRequest, res) => {
-  if (!req.user!.isAdmin) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
+app.delete('/api/admin/videos/:id', requireAuth, requireAdmin, async (req: AuthRequest, res) => {
   const deleteVideoId = Number(req.params.id);
   try {
     await prisma.video.delete({ where: { id: deleteVideoId } });
@@ -1594,10 +1645,7 @@ app.delete('/api/admin/videos/:id', requireAuth, async (req: AuthRequest, res) =
   }
 });
 
-app.delete('/api/admin/shorts/:id', requireAuth, async (req: AuthRequest, res) => {
-  if (!req.user!.isAdmin) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
+app.delete('/api/admin/shorts/:id', requireAuth, requireAdmin, async (req: AuthRequest, res) => {
   const deleteShortId = Number(req.params.id);
   try {
     await prisma.short.delete({ where: { id: deleteShortId } });
@@ -1607,10 +1655,7 @@ app.delete('/api/admin/shorts/:id', requireAuth, async (req: AuthRequest, res) =
   }
 });
 
-app.delete('/api/admin/posts/:id', requireAuth, async (req: AuthRequest, res) => {
-  if (!req.user!.isAdmin) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
+app.delete('/api/admin/posts/:id', requireAuth, requireAdmin, async (req: AuthRequest, res) => {
   const deletePostId = Number(req.params.id);
   try {
     await prisma.post.delete({ where: { id: deletePostId } });

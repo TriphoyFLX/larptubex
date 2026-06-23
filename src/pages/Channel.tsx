@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore.ts';
 import api, { uploadFile } from '../api/index.ts';
 import { Video, Short, CommunityPost, Playlist } from '../types.ts';
 import { formatViews, formatRelativeDate, DEFAULT_AVATAR } from '../utils.ts';
+import { setPageMeta } from '../seo.ts';
 
 export default function Channel() {
   const { id } = useParams();
@@ -38,6 +39,10 @@ export default function Channel() {
       // 1. Fetch channel metadata detail
       const res = await api.get(`/api/channels/${id}`);
       setChannelData(res.data);
+      setPageMeta({
+        title: `Канал ${res.data.displayName}`,
+        description: res.data.bio || `Видео, Shorts и посты канала ${res.data.displayName} на LarpTubeX.`,
+      });
 
       // 2. Fetch specific channel videos
       const videosRes = await api.get('/api/videos');

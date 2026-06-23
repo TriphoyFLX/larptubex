@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore.ts';
 import api from '../api/index.ts';
 import { Notification } from '../types.ts';
 import { formatRelativeDate, DEFAULT_AVATAR } from '../utils.ts';
+import BrandLogo from './BrandLogo.tsx';
 
 export default function Navbar({ onSidebarToggle }: { onSidebarToggle: () => void }) {
   const navigate = useNavigate();
@@ -70,15 +71,7 @@ export default function Navbar({ onSidebarToggle }: { onSidebarToggle: () => voi
         <button onClick={onSidebarToggle} className="p-1 hover:bg-[#e2e2e2] rounded text-[#666]" id="btn-sidebar-toggle">
           <Menu size={20} />
         </button>
-        <Link to="/" className="flex items-center gap-1.5 focus:outline-none" id="logo-larptubex">
-          <div className="bg-[#cc181e] text-white px-1.5 py-0.5 rounded-sm flex items-center justify-center shrink-0">
-            <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-white border-b-[5px] border-b-transparent ml-0.5"></div>
-          </div>
-          <span className="font-sans font-bold text-lg tracking-tighter select-none text-[#222]">
-            LarpTube<span className="text-gray-400 font-normal">X</span>
-          </span>
-          <span className="text-[10px] text-[#777] font-normal align-top ml-0.5">RU</span>
-        </Link>
+        <BrandLogo variant="navbar" />
       </div>
 
       {/* Middle section: High-fidelity Search Box in Clean Minimalism */}

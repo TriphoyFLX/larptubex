@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore.ts';
 import api, { uploadFile } from '../api/index.ts';
 import { CommunityPost } from '../types.ts';
 import { formatRelativeDate, DEFAULT_AVATAR } from '../utils.ts';
+import { setPageMeta } from '../seo.ts';
 
 export default function Community() {
   const { user } = useAuthStore();
@@ -15,6 +16,10 @@ export default function Community() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setPageMeta({
+      title: 'Сообщество',
+      description: 'Лента сообщества LarpTubeX — посты авторов, обсуждения и новости каналов.',
+    });
     fetchPosts();
   }, []);
 

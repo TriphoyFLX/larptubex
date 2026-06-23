@@ -87,6 +87,19 @@ button {
   background-color: #b31217;
 }
 
+/* Watch page mobile sheet */
+.watch-sheet-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+.yt-player:fullscreen {
+  border-radius: 0;
+}
+
+.yt-player:fullscreen video {
+  object-fit: contain;
+}
+
 /* Card classes */
 .yt-card {
   background: #ffffff;

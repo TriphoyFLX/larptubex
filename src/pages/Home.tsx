@@ -5,6 +5,7 @@ import api from '../api/index.ts';
 import { useAuthStore } from '../store/authStore.ts';
 import { Video, Category, WatchHistoryEntry } from '../types.ts';
 import { formatViews, formatRelativeDate, formatVideoDuration } from '../utils.ts';
+import { SITE, setPageMeta } from '../seo.ts';
 
 export default function Home() {
   const { user } = useAuthStore();
@@ -15,6 +16,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setPageMeta({ title: SITE.title, description: SITE.description });
     fetchCategories();
   }, []);
 
