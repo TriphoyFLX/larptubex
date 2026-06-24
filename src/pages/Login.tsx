@@ -140,15 +140,22 @@ export default function Login() {
       )}
 
       {authConfig?.googleEnabled && (
-        <div className="mb-4 flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setErrorCode('Не удалось открыть окно Google')}
-            theme="outline"
-            size="large"
-            text="signin_with"
-            shape="rectangular"
-          />
+        <div className="mb-4">
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setErrorCode('Не удалось открыть окно Google')}
+              theme="outline"
+              size="large"
+              text="signin_with"
+              shape="rectangular"
+            />
+          </div>
+          <p className="mt-2 text-[10px] text-center yt-text-secondary leading-relaxed">
+            Если Google пишет «no registered origin», добавь в Console → Credentials → Web client →{' '}
+            <strong>Authorized JavaScript origins</strong> (не Redirect URIs):{' '}
+            <code className="text-[#3ea6ff]">{typeof window !== 'undefined' ? window.location.origin : 'https://larptubex.ru'}</code>
+          </p>
         </div>
       )}
 
