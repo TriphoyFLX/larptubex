@@ -74,7 +74,7 @@ export default function Community() {
   };
 
   return (
-    <div className="flex-1 yt-page p-6 max-w-3xl mx-auto" id="community-tab">
+    <div className="flex-1 yt-page yt-content-page max-w-3xl mx-auto" id="community-tab">
       <div className="yt-border-b pb-3 mb-6">
         <h1 className="font-sans font-bold text-base yt-text-primary uppercase tracking-wide flex items-center gap-2">
           <MessageSquare size={16} className="text-yt-red" />

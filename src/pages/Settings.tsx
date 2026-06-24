@@ -250,7 +250,7 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-4 sm:gap-6">
         {/* Left nav — Studio sidebar */}
         <aside className="space-y-1">
           {tabs.map((tab) => (

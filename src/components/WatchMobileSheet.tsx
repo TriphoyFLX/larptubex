@@ -79,7 +79,7 @@ export default function WatchMobileSheet({ children, suggestions, videoTitle }: 
 
       <motion.div
         ref={sheetRef}
-        className="fixed inset-x-0 z-30 lg:hidden bg-white rounded-t-2xl shadow-[0_-8px_40px_rgba(0,0,0,0.2)] flex flex-col"
+        className="fixed inset-x-0 z-30 lg:hidden yt-surface rounded-t-2xl shadow-[0_-8px_40px_var(--yt-shadow)] flex flex-col border-t border-[var(--yt-border)]"
         style={{ y, top: 0, height: heights.full }}
         drag="y"
         dragConstraints={{
@@ -89,18 +89,18 @@ export default function WatchMobileSheet({ children, suggestions, videoTitle }: 
         dragElastic={0.06}
         onDragEnd={onDragEnd}
       >
-        <div className="shrink-0 pt-2.5 pb-2 px-4 cursor-grab active:cursor-grabbing touch-none border-b border-gray-100">
-          <div className="w-11 h-1 bg-gray-300 rounded-full mx-auto mb-2" />
+        <div className="shrink-0 pt-2.5 pb-2 px-4 cursor-grab active:cursor-grabbing touch-none border-b border-[var(--yt-border)]">
+          <div className="w-11 h-1 bg-[var(--yt-border-strong)] rounded-full mx-auto mb-2" />
           <button
             type="button"
             onClick={() => setSnap((s) => (s < SNAP_FULL ? s + 1 : SNAP_COLLAPSED))}
-            className="w-full flex items-center justify-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-wide py-0.5"
+            className="w-full flex items-center justify-center gap-1.5 text-[10px] font-bold yt-text-muted uppercase tracking-wide py-0.5"
           >
             <ChevronUp size={14} className={`transition-transform duration-200 ${snap === SNAP_FULL ? 'rotate-180' : ''}`} />
             {snap === SNAP_FULL ? 'Свернуть' : snap === SNAP_HALF ? 'Ещё выше — все рекомендации' : 'Потяните вверх — рекомендации'}
           </button>
           {snap === SNAP_COLLAPSED && (
-            <p className="text-sm font-bold text-gray-900 line-clamp-2 text-center mt-1.5 px-1 leading-snug">{videoTitle}</p>
+            <p className="text-sm font-bold yt-text-primary line-clamp-2 text-center mt-1.5 px-1 leading-snug">{videoTitle}</p>
           )}
         </div>
 

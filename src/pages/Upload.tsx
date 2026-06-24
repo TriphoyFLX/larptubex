@@ -124,7 +124,7 @@ export default function Upload() {
   };
 
   return (
-    <div className="flex-1 yt-page p-6 max-w-3xl mx-auto" id="upload-panel">
+    <div className="flex-1 yt-page yt-content-page max-w-3xl mx-auto" id="upload-panel">
       <div className="yt-border-b pb-3 mb-6">
         <h1 className="font-sans font-bold text-base yt-text-primary uppercase tracking-wide flex items-center gap-1.5">
           <UploadIcon size={16} className="text-yt-red" />

@@ -18,7 +18,7 @@ export default function SuggestedVideos({
 }: SuggestedVideosProps) {
   if (videos.length === 0) {
     return (
-      <p className="text-xs text-gray-400 italic py-4 text-center">Пока нет рекомендаций</p>
+      <p className="text-xs yt-text-muted italic py-4 text-center">Пока нет рекомендаций</p>
     );
   }
 
@@ -27,9 +27,9 @@ export default function SuggestedVideos({
       key={s.id}
       to={`/watch/${s.id}`}
       onClick={onVideoClick}
-      className="group flex gap-3 rounded-sm hover:bg-gray-50/80 transition-colors p-1 -mx-1"
+      className="group flex gap-2 sm:gap-3 rounded-sm yt-hover transition-colors p-1 -mx-1"
     >
-      <div className="relative shrink-0 yt-video-thumb w-[168px] sm:w-40 rounded-lg">
+      <div className="relative shrink-0 yt-video-thumb w-[120px] sm:w-40 rounded-lg">
         <img
           src={s.thumbnailUrl}
           alt={s.title}
@@ -42,11 +42,11 @@ export default function SuggestedVideos({
         </div>
       </div>
       <div className="flex-1 min-w-0 py-0.5">
-        <h4 className="font-bold text-[12px] text-gray-950 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
+        <h4 className="font-bold text-[12px] yt-text-primary leading-snug line-clamp-2 group-hover:text-[#3ea6ff] transition-colors">
           {s.title}
         </h4>
-        <p className="text-[11px] text-gray-500 font-medium mt-1 truncate">{s.authorName}</p>
-        <span className="text-[10px] text-gray-400 mt-0.5 block">{formatViews(s.views)}</span>
+        <p className="text-[11px] yt-text-secondary font-medium mt-1 truncate">{s.authorName}</p>
+        <span className="text-[10px] yt-text-muted mt-0.5 block">{formatViews(s.views)}</span>
       </div>
     </Link>
   );
@@ -54,11 +54,11 @@ export default function SuggestedVideos({
   if (variant === 'grid') {
     return (
       <div>
-        <h3 className="font-bold text-xs text-gray-900 uppercase tracking-wide flex items-center gap-1.5 mb-3">
+        <h3 className="font-bold text-xs yt-text-primary uppercase tracking-wide flex items-center gap-1.5 mb-3">
           <Play size={12} className="text-yt-red fill-yt-red" />
           {title}
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
           {videos.map(card)}
         </div>
       </div>
@@ -68,7 +68,7 @@ export default function SuggestedVideos({
   if (variant === 'sheet') {
     return (
       <div className="space-y-1">
-        <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2 mb-3 sticky top-0 bg-white/95 backdrop-blur py-2 z-10 border-b border-gray-100">
+        <h3 className="font-bold text-sm yt-text-primary flex items-center gap-2 mb-3 sticky top-0 yt-surface backdrop-blur-sm py-2 z-10 border-b border-[var(--yt-border)]">
           <Play size={14} className="text-yt-red fill-yt-red" />
           {title}
         </h3>
@@ -79,7 +79,7 @@ export default function SuggestedVideos({
 
   return (
     <div>
-      <h3 className="font-bold text-xs text-gray-900 border-b border-gray-200 pb-2 uppercase tracking-wide flex items-center gap-1.5">
+      <h3 className="font-bold text-xs yt-text-primary border-b border-[var(--yt-border)] pb-2 uppercase tracking-wide flex items-center gap-1.5">
         <Play size={11} className="text-yt-red fill-yt-red" />
         {title}
       </h3>

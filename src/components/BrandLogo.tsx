@@ -38,7 +38,7 @@ export default function BrandLogo({
       />
       {showWordmark && (
         <span
-          className={`font-sans font-bold tracking-tight text-[#222] select-none ${wordmarkSizes[variant]}`}
+          className={`font-sans font-bold tracking-tight yt-text-primary select-none hidden sm:inline ${wordmarkSizes[variant]}`}
           id="logo-larptubex"
         >
           Larp<span className="text-[#cc181e]">Tubex</span>

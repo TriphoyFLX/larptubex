@@ -207,7 +207,7 @@ export default function Watch() {
         <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-black aspect-video w-full animate-pulse rounded-sm" />
-            <div className="h-6 bg-gray-200 w-3/4 animate-pulse rounded" />
+            <div className="h-6 yt-skeleton w-3/4 animate-pulse rounded" />
           </div>
         </div>
       </div>
@@ -411,7 +411,7 @@ export default function Watch() {
   );
 
   return (
-    <div className="flex-1 bg-[#f9f9f9] min-h-full" id="watch-layout">
+    <div className="flex-1 yt-page min-h-full" id="watch-layout">
       {/* ——— Mobile: sticky player + pull-up sheet ——— */}
       <div className="lg:hidden">
         <div className="sticky top-0 z-40 bg-black shadow-lg">
@@ -428,7 +428,7 @@ export default function Watch() {
       </div>
 
       {/* ——— Desktop ——— */}
-      <div className={`hidden lg:block p-6 ${theaterMode ? 'max-w-[1600px]' : 'max-w-[1280px]'} mx-auto`}>
+      <div className={`hidden lg:block p-4 xl:p-6 w-full ${theaterMode ? 'max-w-[1800px]' : 'max-w-[1400px]'} mx-auto`}>
         <div className={`grid gap-6 ${theaterMode ? 'grid-cols-1' : 'grid-cols-3'}`}>
           <div className={theaterMode ? 'col-span-1' : 'col-span-2'}>
             <VideoPlayer {...playerProps} className="aspect-video w-full" />

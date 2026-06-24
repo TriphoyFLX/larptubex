@@ -79,7 +79,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex-1 yt-page p-6" id="home-view">
+    <div className="flex-1 yt-page p-3 sm:p-4 lg:p-6 w-full max-w-[2560px] mx-auto" id="home-view">
       {/* Category Slider Rail */}
       <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 yt-border-b uppercase text-[11px]" id="categories-tabs-rail">
         <button
@@ -148,7 +148,7 @@ export default function Home() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10" id="skeleton-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-3 sm:gap-x-4 gap-y-6 sm:gap-y-10" id="skeleton-grid">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div key={i} className="animate-pulse space-y-3">
               <div className="yt-skeleton w-full aspect-video rounded-xl" />
@@ -163,7 +163,7 @@ export default function Home() {
         </div>
       ) : (
         /* Video cards grid */
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10" id="videos-showcase-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-3 sm:gap-x-4 gap-y-6 sm:gap-y-10" id="videos-showcase-grid">
           {videos.map((video) => (
             <div key={video.id} className="flex flex-col gap-2.5 group" id={`video-card-${video.id}`}>
               <VideoThumbnail

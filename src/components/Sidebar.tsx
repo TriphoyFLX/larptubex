@@ -12,7 +12,13 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
       : 'yt-text-primary hover:bg-[var(--yt-bg-hover)]'
   }`;
 
-export default function Sidebar({ isOpen }: { isOpen: boolean }) {
+type SidebarProps = {
+  isOpen: boolean;
+  isMobile: boolean;
+  onClose?: () => void;
+};
+
+export default function Sidebar({ isOpen, isMobile, onClose }: SidebarProps) {
   const { user } = useAuthStore();
   const [subs, setSubs] = useState<{ id: number; displayName: string; avatar: string | null }[]>([]);
 
@@ -26,25 +32,43 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!isMobile || !isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isMobile, isOpen]);
+
   if (!isOpen) return null;
 
-  return (
-    <aside className="w-56 yt-sidebar flex flex-col pt-3 shrink-0 border-r min-h-[calc(100vh-56px)] pb-4 overflow-y-auto" id="sidebar-panel">
+  const handleNavClick = () => {
+    if (isMobile) onClose?.();
+  };
+
+  const panel = (
+    <aside
+      className={
+        isMobile
+          ? 'fixed top-14 left-0 z-50 w-72 max-w-[min(288px,85vw)] yt-sidebar flex flex-col pt-3 h-[calc(100vh-56px)] pb-4 overflow-y-auto border-r shadow-2xl'
+          : 'w-56 yt-sidebar flex flex-col pt-3 shrink-0 border-r min-h-[calc(100vh-56px)] pb-4 overflow-y-auto'
+      }
+      id="sidebar-panel"
+    >
       <div className="flex flex-col gap-0.5 px-3 pb-2">
-        <NavLink to="/" className={navClass} end>
+        <NavLink to="/" className={navClass} end onClick={handleNavClick}>
           <Home size={20} />
           <span>Главная</span>
         </NavLink>
-        <NavLink to="/shorts" className={navClass}>
+        <NavLink to="/shorts" className={navClass} onClick={handleNavClick}>
           <Flame size={20} className="text-yt-red" />
           <span>Shorts</span>
         </NavLink>
-        <NavLink to="/community" className={navClass}>
+        <NavLink to="/community" className={navClass} onClick={handleNavClick}>
           <Users size={20} />
           <span>Сообщество</span>
         </NavLink>
         {user && (
-          <NavLink to="/history" className={navClass}>
+          <NavLink to="/history" className={navClass} onClick={handleNavClick}>
             <History size={20} />
             <span>История</span>
           </NavLink>
@@ -64,6 +88,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
                 <NavLink
                   key={sub.id}
                   to={`/channel/${sub.id}`}
+                  onClick={handleNavClick}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2 rounded-xl text-sm truncate ${
                       isActive ? 'bg-[var(--yt-bg-hover)] font-semibold yt-text-primary' : 'yt-text-primary hover:bg-[var(--yt-bg-hover)]'
@@ -79,7 +104,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
         ) : (
           <div className="mx-0 p-3 yt-surface rounded-xl">
             <p className="text-xs yt-text-secondary leading-normal mb-2">Войдите, чтобы видеть подписки</p>
-            <NavLink to="/login" className="text-xs text-[#3ea6ff] hover:underline font-semibold">
+            <NavLink to="/login" className="text-xs text-[#3ea6ff] hover:underline font-semibold" onClick={handleNavClick}>
               Войти
             </NavLink>
           </div>
@@ -93,4 +118,20 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
       </div>
     </aside>
   );
+
+  if (isMobile) {
+    return (
+      <>
+        <button
+          type="button"
+          className="fixed inset-0 top-14 z-40 bg-black/50 lg:hidden"
+          aria-label="Закрыть меню"
+          onClick={onClose}
+        />
+        {panel}
+      </>
+    );
+  }
+
+  return panel;
 }

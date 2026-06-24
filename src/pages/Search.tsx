@@ -43,13 +43,13 @@ export default function Search() {
   };
 
   if (loading) {
-    return <div className="flex-1 yt-page p-6 animate-pulse space-y-4 h-96"></div>;
+    return <div className="flex-1 yt-page yt-content-page animate-pulse space-y-4 h-96"></div>;
   }
 
   const totalResults = results.videos.length + results.channels.length + results.shorts.length + results.posts.length;
 
   return (
-    <div className="flex-1 yt-page p-6 max-w-4xl mx-auto" id="search-view">
+    <div className="flex-1 yt-page yt-content-page max-w-4xl mx-auto" id="search-view">
       <div className="yt-border-b pb-3 mb-6">
         <h2 className="font-sans font-bold text-sm yt-text-primary uppercase tracking-wider flex items-center gap-2">
           <SearchIcon size={14} className="yt-text-secondary" />

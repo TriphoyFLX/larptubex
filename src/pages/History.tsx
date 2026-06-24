@@ -83,7 +83,7 @@ export default function HistoryPage() {
   ];
 
   return (
-    <div className="flex-1 yt-page p-6 max-w-5xl mx-auto" id="history-view">
+    <div className="flex-1 yt-page yt-content-page max-w-5xl mx-auto" id="history-view">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 yt-border-b pb-4 mb-6">
         <div>
           <h1 className="text-xl font-bold yt-text-primary flex items-center gap-2">

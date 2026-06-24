@@ -109,7 +109,7 @@ export default function Admin() {
 
   if (loading) {
     return (
-      <div className="flex-1 yt-page p-6 animate-pulse space-y-6">
+      <div className="flex-1 yt-page yt-content-page animate-pulse space-y-6">
         <div className="h-6 yt-skeleton w-1/4 rounded"></div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[1,2,3,4].map(idx => <div key={idx} className="h-20 yt-skeleton rounded"></div>)}
@@ -119,7 +119,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="flex-1 yt-page p-6" id="admin-view">
+    <div className="flex-1 yt-page yt-content-page w-full max-w-[2560px] mx-auto" id="admin-view">
       {/* Header banner */}
       <div className="yt-border-b pb-3 mb-6 flex justify-between items-center bg-red-50/40 dark:bg-red-950/20 p-4 border border-[var(--yt-border)] rounded">
         <div>

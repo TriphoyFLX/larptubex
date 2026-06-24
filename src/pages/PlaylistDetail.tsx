@@ -26,7 +26,7 @@ export default function PlaylistDetail() {
   };
 
   if (loading) {
-    return <div className="flex-1 yt-page p-6 animate-pulse space-y-4 h-96"></div>;
+    return <div className="flex-1 yt-page yt-content-page animate-pulse space-y-4 h-96"></div>;
   }
 
   if (!playlist) {
@@ -34,7 +34,7 @@ export default function PlaylistDetail() {
   }
 
   return (
-    <div className="flex-1 yt-page p-6 grid grid-cols-1 md:grid-cols-3 gap-6" id="playlist-view">
+    <div className="flex-1 yt-page yt-content-page grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 w-full max-w-6xl mx-auto" id="playlist-view">
       {/* Left Column info card */}
       <div className="md:col-span-1 yt-surface border border-[var(--yt-border)] p-5 rounded-sm" id="playlist-left-rail">
         <div className="yt-skeleton aspect-video w-full flex items-center justify-center yt-text-muted rounded border border-[var(--yt-border)] font-bold select-none">
@@ -55,12 +55,14 @@ export default function PlaylistDetail() {
         ) : (
           <div className="flex flex-col gap-3" id="playlist-v-list">
             {playlist.videos?.map((v: any, index: number) => (
-              <div key={v.id} className="flex gap-3 yt-border-b pb-3 last:border-0 items-center">
-                <span className="text-xs font-bold yt-text-muted w-4 select-none">#{index + 1}</span>
-                <Link to={`/watch/${v.id}`} className="relative w-36 shrink-0 aspect-video overflow-hidden border border-[var(--yt-border)] bg-black">
+              <div key={v.id} className="flex flex-col sm:flex-row gap-2 sm:gap-3 yt-border-b pb-3 last:border-0 sm:items-center">
+                <div className="flex items-center gap-2 sm:contents">
+                  <span className="text-xs font-bold yt-text-muted w-4 select-none sm:order-none">#{index + 1}</span>
+                  <Link to={`/watch/${v.id}`} className="relative w-full sm:w-36 shrink-0 aspect-video overflow-hidden border border-[var(--yt-border)] bg-black rounded-sm">
                   <img src={v.thumbnailUrl} className="w-full h-full object-cover" alt="Thumb" />
                   <span className="absolute bottom-1 right-1 bg-black/80 font-mono text-[9px] px-1 rounded text-white">{v.duration}</span>
                 </Link>
+                </div>
                 <div className="flex-1 min-w-0">
                   <Link to={`/watch/${v.id}`} className="block font-bold text-xs yt-text-primary truncate hover:text-[#3ea6ff] leading-tight uppercase-none">{v.title}</Link>
                   <span className="text-[10px] yt-text-secondary font-semibold block mt-1">{v.authorName}</span>

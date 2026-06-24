@@ -178,7 +178,7 @@ export default function Shorts() {
 
   if (loading) {
     return (
-      <div className="flex-1 yt-page flex items-center justify-center p-6 h-[calc(100vh-100px)]">
+      <div className="flex-1 yt-page flex items-center justify-center p-4 sm:p-6 h-[calc(100vh-56px)] lg:pb-0">
         <div className="animate-pulse space-y-4 flex flex-col items-center">
           <div className="w-[300px] h-[500px] yt-skeleton rounded"></div>
           <div className="h-4 yt-skeleton rounded w-48"></div>
@@ -199,8 +199,8 @@ export default function Shorts() {
   }
 
   return (
-    <div className="flex-1 yt-page flex items-center justify-center py-6 px-4 md:px-0 relative h-[calc(100vh-50px)] overflow-hidden" id="shorts-panel">
-      <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+    <div className="flex-1 yt-page flex items-center justify-center py-4 sm:py-6 px-2 sm:px-4 md:px-0 relative h-[calc(100vh-56px-3.5rem)] lg:h-[calc(100vh-56px)] overflow-hidden" id="shorts-panel">
+      <div className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 flex flex-col gap-2 sm:gap-3 z-20">
         <button
           onClick={handlePrev}
           disabled={activeIndex === 0}
@@ -219,8 +219,8 @@ export default function Shorts() {
         </button>
       </div>
 
-      <div className="relative flex max-w-4xl w-full justify-center items-center h-full max-h-[640px]">
-        <div className="relative aspect-[9/16] h-full max-h-[600px] bg-black border-2 border-[var(--yt-border)] rounded shadow-2xl overflow-hidden" id="shorts-viewport-card">
+      <div className="relative flex max-w-4xl w-full justify-center items-center h-full max-h-[min(640px,calc(100vh-120px))]">
+        <div className="relative aspect-[9/16] h-full max-h-[min(600px,calc(100vh-140px))] w-auto max-w-[calc(100vw-120px)] sm:max-w-none bg-black border-2 border-[var(--yt-border)] rounded shadow-2xl overflow-hidden" id="shorts-viewport-card">
           <video
             ref={(el) => {
               videoRefs.current[activeIndex] = el;
@@ -267,7 +267,7 @@ export default function Shorts() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-5 ml-4 text-center select-none" id="shorts-interactions-rail">
+        <div className="flex flex-col items-center gap-3 sm:gap-5 ml-2 sm:ml-4 text-center select-none shrink-0" id="shorts-interactions-rail">
           <div className="flex flex-col items-center">
             <button
               onClick={handleLike}
@@ -309,7 +309,7 @@ export default function Shorts() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute right-0 top-0 bottom-0 w-80 yt-surface border-l border-[var(--yt-border)] z-30 shadow-2xl flex flex-col p-4"
+              className="absolute right-0 top-0 bottom-0 w-full max-w-80 yt-surface border-l border-[var(--yt-border)] z-30 shadow-2xl flex flex-col p-4"
               id="shorts-comments-slideout-drawer"
             >
               <div className="flex items-center justify-between yt-border-b pb-3 mb-3">

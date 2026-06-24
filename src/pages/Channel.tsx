@@ -132,7 +132,7 @@ export default function Channel() {
 
   if (loading) {
     return (
-      <div className="flex-1 yt-page p-6 animate-pulse space-y-6">
+      <div className="flex-1 yt-page yt-content-page animate-pulse space-y-6">
         <div className="yt-skeleton h-32 w-full"></div>
         <div className="flex gap-4 items-center">
           <div className="w-20 h-20 yt-skeleton rounded-full"></div>
@@ -170,7 +170,7 @@ export default function Channel() {
       </div>
 
       {/* Profile summary banner */}
-      <div className="max-w-6xl mx-auto px-6 py-5 yt-border-b -mt-6 relative" id="channel-profile-row">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5 yt-border-b -mt-6 relative" id="channel-profile-row">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div className="flex items-end gap-4">
             <img
@@ -213,7 +213,7 @@ export default function Channel() {
 
       {/* Tabs list representation */}
       <div className="yt-border-b" id="channel-tabs-list">
-        <div className="max-w-6xl mx-auto px-6 flex text-xs font-bold uppercase yt-text-secondary select-none">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 flex text-xs font-bold uppercase yt-text-secondary select-none overflow-x-auto">
           {(['home', 'videos', 'shorts', 'posts', 'playlists', 'about'] as const).map((tab) => {
             const labels = {
               home: 'Главная',
@@ -237,7 +237,7 @@ export default function Channel() {
       </div>
 
       {/* Tab Area Contents */}
-      <div className="max-w-6xl mx-auto px-6 py-6" id="channel-content-box">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6" id="channel-content-box">
         {/* TAB 1: Главная - Show highlighted video */}
         {activeTab === 'home' && (
           <div className="space-y-8" id="tab-home">

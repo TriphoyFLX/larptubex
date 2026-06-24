@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore } from './store/themeStore';
+import { useMediaQuery } from './hooks/useMediaQuery';
 
 import Navbar from './components/Navbar.tsx';
 import Sidebar from './components/Sidebar.tsx';
+import MobileBottomNav from './components/MobileBottomNav.tsx';
 import BrandLogo from './components/BrandLogo.tsx';
 import { SITE, setPageMeta } from './seo.ts';
 
@@ -25,7 +27,8 @@ import Settings from './pages/Settings.tsx';
 export default function App() {
   const { initialize, initializing } = useAuthStore();
   const { initialize: initTheme } = useThemeStore();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     initTheme();
@@ -33,8 +36,20 @@ export default function App() {
     setPageMeta({ title: SITE.title, description: SITE.description });
   }, []);
 
+  useEffect(() => {
+    if (isDesktop) {
+      setSidebarOpen(true);
+    } else {
+      setSidebarOpen(false);
+    }
+  }, [isDesktop]);
+
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
   };
 
   if (initializing) {
@@ -56,8 +71,8 @@ export default function App() {
       <div className="min-h-screen flex flex-col yt-app font-sans" id="larptubex-app">
         <Navbar onSidebarToggle={toggleSidebar} />
         <div className="flex flex-1 relative">
-          <Sidebar isOpen={sidebarOpen} />
-          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-50px)]">
+          <Sidebar isOpen={sidebarOpen} isMobile={!isDesktop} onClose={closeSidebar} />
+          <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-56px)] pb-14 lg:pb-0 w-full min-w-0">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/watch/:id" element={<Watch />} />
@@ -76,6 +91,7 @@ export default function App() {
             </Routes>
           </main>
         </div>
+        <MobileBottomNav />
       </div>
     </Router>
   );
