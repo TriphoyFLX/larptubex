@@ -10,6 +10,9 @@ interface AuthState {
   
   // Custom JWT Actions
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
+  sendEmailCode: (email: string) => Promise<void>;
+  loginWithEmailCode: (email: string, code: string) => Promise<void>;
   register: (payload: { email: string; password?: string; displayName: string; avatar?: string; bio?: string }) => Promise<void>;
   
   // Universal actions
@@ -17,6 +20,20 @@ interface AuthState {
   setUser: (user: User | null) => void;
   updateProfile: (payload: Partial<Pick<User, 'displayName' | 'handle' | 'avatar' | 'banner' | 'bio' | 'hashtags'>> & { hashtags?: string[] | string }) => Promise<User>;
   initialize: () => Promise<void>;
+}
+
+function persistAuthSession(
+  set: (partial: Partial<AuthState>) => void,
+  data: { user: User; accessToken: string; refreshToken: string }
+) {
+  localStorage.setItem('larptubex_access_token', data.accessToken);
+  localStorage.setItem('larptubex_refresh_token', data.refreshToken);
+  localStorage.setItem('larptubex_user_payload', JSON.stringify(data.user));
+  set({
+    user: data.user,
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken,
+  });
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -39,14 +56,37 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await api.post('/api/auth/login', { email, password });
       const { user, accessToken, refreshToken } = response.data;
-
-      localStorage.setItem('larptubex_access_token', accessToken);
-      localStorage.setItem('larptubex_refresh_token', refreshToken);
-      localStorage.setItem('larptubex_user_payload', JSON.stringify(user));
-
-      set({ user, accessToken, refreshToken });
+      persistAuthSession(set, { user, accessToken, refreshToken });
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Неверные авторизационные данные');
+    }
+  },
+
+  loginWithGoogle: async (credential) => {
+    try {
+      const response = await api.post('/api/auth/google', { credential });
+      const { user, accessToken, refreshToken } = response.data;
+      persistAuthSession(set, { user, accessToken, refreshToken });
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Не удалось войти через Google');
+    }
+  },
+
+  sendEmailCode: async (email) => {
+    try {
+      await api.post('/api/auth/email-code/send', { email });
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Не удалось отправить код');
+    }
+  },
+
+  loginWithEmailCode: async (email, code) => {
+    try {
+      const response = await api.post('/api/auth/email-code/verify', { email, code });
+      const { user, accessToken, refreshToken } = response.data;
+      persistAuthSession(set, { user, accessToken, refreshToken });
+    } catch (error: any) {
+      throw new Error(error.response?.data?.error || 'Неверный код');
     }
   },
 

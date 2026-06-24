@@ -283,3 +283,15 @@ model UserHashtag {
   @@id([userId, hashtagId])
   @@map("user_hashtags")
 }
+
+model EmailVerificationCode {
+  id        Int      @id @default(autoincrement())
+  email     String
+  codeHash  String   @map("code_hash")
+  expiresAt DateTime @map("expires_at")
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([email])
+  @@map("email_verification_codes")
+}

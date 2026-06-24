@@ -51,11 +51,15 @@ import {
   normalizeHashtag,
 } from './src/server/hashtags.ts';
 import { getHomeRecommendations, getRelatedVideos } from './src/server/recommendations.ts';
+import { findOrCreateUserForAuth } from './src/server/authUsers.ts';
+import { isGoogleAuthConfigured, verifyGoogleIdToken } from './src/server/googleAuth.ts';
+import { isEmailAuthConfigured, sendEmailLoginCode, verifyEmailLoginCode } from './src/server/emailAuth.ts';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const JWT_SECRET = getJwtSecret();
 const authRateLimit = createRateLimiter(15, 15 * 60 * 1000);
+const emailCodeRateLimit = createRateLimiter(1, 60 * 1000);
 
 app.use(express.json({ limit: '2mb' }));
 
@@ -320,6 +324,114 @@ app.post('/api/upload/:type', requireAuth, (req: AuthRequest, res) => {
 });
 
 // --- 1. Authenticaton API ---
+app.get('/api/auth/config', (_req, res) => {
+  res.json({
+    googleClientId: process.env.GOOGLE_CLIENT_ID || null,
+    googleEnabled: isGoogleAuthConfigured(),
+    emailCodeEnabled: isEmailAuthConfigured(),
+  });
+});
+
+app.post('/api/auth/google', async (req, res) => {
+  try {
+    if (!isGoogleAuthConfigured()) {
+      return res.status(503).json({ error: 'Вход через Google временно недоступен' });
+    }
+
+    const { credential } = req.body;
+    if (!credential || typeof credential !== 'string') {
+      return res.status(400).json({ error: 'Не передан токен Google' });
+    }
+
+    const limit = authRateLimit(`google:${req.ip}`);
+    if (!limit.allowed) {
+      return res.status(429).json({ error: `Слишком много попыток. Повторите через ${limit.retryAfterSec} сек.` });
+    }
+
+    const profile = await verifyGoogleIdToken(credential);
+    const user = await findOrCreateUserForAuth({
+      email: profile.email,
+      displayName: profile.displayName,
+      avatar: profile.avatar,
+      googleSub: profile.googleSub,
+    });
+
+    const { accessToken, refreshToken } = generateTokens(user);
+    res.json({ user: sanitizeUser(user), accessToken, refreshToken });
+  } catch (error: any) {
+    if (error?.message === 'RESERVED_EMAIL') {
+      return res.status(403).json({ error: 'Этот email зарезервирован.' });
+    }
+    console.error('Google auth error:', error);
+    res.status(401).json({ error: 'Не удалось войти через Google. Проверьте, что ваш email добавлен в тестовые пользователи OAuth.' });
+  }
+});
+
+app.post('/api/auth/email-code/send', async (req, res) => {
+  try {
+    if (!isEmailAuthConfigured()) {
+      return res.status(503).json({ error: 'Вход по коду на почту временно недоступен' });
+    }
+
+    const { email } = req.body;
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Введите email' });
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      return res.status(400).json({ error: 'Некорректный email' });
+    }
+
+    if (isReservedAdminEmail(trimmedEmail)) {
+      return res.status(403).json({ error: 'Этот email зарезервирован.' });
+    }
+
+    const limit = emailCodeRateLimit(`email-code:${req.ip}:${trimmedEmail}`);
+    if (!limit.allowed) {
+      return res.status(429).json({ error: `Код уже отправлен. Повторите через ${limit.retryAfterSec} сек.` });
+    }
+
+    await sendEmailLoginCode(trimmedEmail);
+    res.json({ success: true, message: 'Код отправлен на почту' });
+  } catch (error) {
+    console.error('Email code send error:', error);
+    res.status(500).json({ error: 'Не удалось отправить код. Попробуйте позже.' });
+  }
+});
+
+app.post('/api/auth/email-code/verify', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ error: 'Введите email и код' });
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const limit = authRateLimit(`email-verify:${req.ip}:${trimmedEmail}`);
+    if (!limit.allowed) {
+      return res.status(429).json({ error: `Слишком много попыток. Повторите через ${limit.retryAfterSec} сек.` });
+    }
+
+    const verifiedEmail = await verifyEmailLoginCode(trimmedEmail, String(code));
+    const user = await findOrCreateUserForAuth({ email: verifiedEmail });
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    res.json({ user: sanitizeUser(user), accessToken, refreshToken });
+  } catch (error: any) {
+    const map: Record<string, string> = {
+      CODE_NOT_FOUND: 'Сначала запросите код на почту',
+      CODE_EXPIRED: 'Код истёк. Запросите новый',
+      CODE_MAX_ATTEMPTS: 'Слишком много неверных попыток. Запросите новый код',
+      CODE_INVALID: 'Неверный код',
+      RESERVED_EMAIL: 'Этот email зарезервирован.',
+    };
+    const message = map[error?.message] || 'Ошибка проверки кода';
+    const status = error?.message === 'RESERVED_EMAIL' ? 403 : 401;
+    res.status(status).json({ error: message });
+  }
+});
+
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password, displayName, avatar, bio } = req.body;
