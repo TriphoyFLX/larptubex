@@ -1,10 +1,8 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const UPLOADS_ROOT = path.join(__dirname, '../../uploads');
+export const UPLOADS_ROOT = path.join(process.cwd(), 'uploads');
 
 const SUBDIRS = ['videos', 'thumbnails', 'images', 'avatars', 'banners'] as const;
 export type UploadType = (typeof SUBDIRS)[number];
