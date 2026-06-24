@@ -13,7 +13,7 @@ import {
 import { useAuthStore } from '../store/authStore.ts';
 import api from '../api/index.ts';
 import { Video, Comment } from '../types.ts';
-import { formatViews, formatRelativeDate, buildCommentTree, DEFAULT_AVATAR, isSameUser } from '../utils.ts';
+import { formatViews, formatRelativeDate, buildCommentTree, DEFAULT_AVATAR, isSameUser, normalizeVideoList } from '../utils.ts';
 import { registerPlaybackForAd } from '../utils/ads.ts';
 import { setPageMeta } from '../seo.ts';
 import { useWatchProgress } from '../hooks/useWatchProgress.ts';
@@ -94,11 +94,18 @@ export default function Watch() {
     if (!id) return;
     try {
       const res = await api.get(`/api/videos/${id}/related`, { params: { limit: 16 } });
-      setSuggestedVideos(res.data);
+      const list = normalizeVideoList<Video>(res.data);
+      if (list.length > 0) {
+        setSuggestedVideos(list);
+        return;
+      }
+      const fallback = await api.get('/api/videos');
+      setSuggestedVideos(
+        normalizeVideoList<Video>(fallback.data).filter((v) => v.id !== Number(id)).slice(0, 16)
+      );
     } catch (e) {
       console.error('Could not load suggestions:', e);
-      const fallback = await api.get('/api/videos');
-      setSuggestedVideos(fallback.data.filter((v: Video) => v.id !== Number(id)).slice(0, 16));
+      setSuggestedVideos([]);
     }
   };
 

@@ -42,6 +42,17 @@ export function getImageFileDimensions(file: File): Promise<{ width: number; hei
 
 export const DEFAULT_AVATAR = '/uploads/default-avatar.svg';
 
+/** API may return a raw array or `{ videos: [] }`; HTML/error payloads become `[]`. */
+export function normalizeVideoList<T = unknown>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === 'object') {
+    const obj = data as Record<string, unknown>;
+    if (Array.isArray(obj.videos)) return obj.videos as T[];
+    if (Array.isArray(obj.items)) return obj.items as T[];
+  }
+  return [];
+}
+
 export function formatChannelHandle(user: { handle?: string | null; id: number }): string {
   return user.handle ? `@${user.handle}` : `@user${user.id}`;
 }

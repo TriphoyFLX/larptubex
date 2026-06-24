@@ -4,7 +4,7 @@ import { Clock } from 'lucide-react';
 import api from '../api/index.ts';
 import { useAuthStore } from '../store/authStore.ts';
 import { Video, Category, WatchHistoryEntry } from '../types.ts';
-import { formatViews, formatRelativeDate, formatVideoDuration } from '../utils.ts';
+import { formatViews, formatRelativeDate, formatVideoDuration, normalizeVideoList } from '../utils.ts';
 import { SITE, setPageMeta } from '../seo.ts';
 import VideoThumbnail from '../components/VideoThumbnail.tsx';
 
@@ -50,18 +50,29 @@ export default function Home() {
   const fetchVideos = async () => {
     setLoading(true);
     try {
-      const params: any = {};
+      const params: Record<string, string | number> = { limit: 24 };
       if (activeCategory) {
         params.category = activeCategory;
       }
-      params.limit = 24;
-      const res = await api.get('/api/recommendations/home', { params });
-      setVideos(res.data);
+
+      let list: Video[] = [];
+      try {
+        const res = await api.get('/api/recommendations/home', { params });
+        list = normalizeVideoList<Video>(res.data);
+      } catch {
+        // fall through to legacy feed
+      }
+
+      if (list.length === 0) {
+        const fallbackParams = activeCategory ? { category: activeCategory } : {};
+        const fallback = await api.get('/api/videos', { params: fallbackParams });
+        list = normalizeVideoList<Video>(fallback.data);
+      }
+
+      setVideos(list);
     } catch (e) {
       console.error('Error loading videos:', e);
-      const fallbackParams = activeCategory ? { category: activeCategory } : {};
-      const fallback = await api.get('/api/videos', { params: fallbackParams });
-      setVideos(fallback.data);
+      setVideos([]);
     } finally {
       setLoading(false);
     }

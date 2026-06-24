@@ -53,7 +53,7 @@ import {
 import { getHomeRecommendations, getRelatedVideos } from './src/server/recommendations.ts';
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const JWT_SECRET = getJwtSecret();
 const authRateLimit = createRateLimiter(15, 15 * 60 * 1000);
 
